@@ -1,6 +1,5 @@
 import { cssBundleHref } from "@remix-run/css-bundle";
-import type { LinksFunction, LoaderFunctionArgs } from "@remix-run/node";
-import { json } from "@remix-run/node";
+import type { LinksFunction } from "@remix-run/node";
 import {
   Links,
   LiveReload,
@@ -11,16 +10,13 @@ import {
 } from "@remix-run/react";
 
 import stylesheet from "~/presentation/root.css";
-// export { getUserLoader as loader } from "./application/users";
+
+import { Toaster } from "./presentation/components/ui/toaster";
 
 export const links: LinksFunction = () => [
   { rel: "stylesheet", href: stylesheet },
   ...(cssBundleHref ? [{ rel: "stylesheet", href: cssBundleHref }] : []),
 ];
-
-// export const loader = async ({ request }: LoaderFunctionArgs) => {
-//   return json({ user: await getUserLoader(request) });
-// };
 
 export default function App() {
   return (
@@ -36,6 +32,7 @@ export default function App() {
         <ScrollRestoration />
         <Scripts />
         <LiveReload />
+        <Toaster />
       </body>
     </html>
   );

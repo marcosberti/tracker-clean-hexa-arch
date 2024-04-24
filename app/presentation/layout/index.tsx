@@ -1,6 +1,8 @@
 import { LoaderFunctionArgs, MetaFunction } from "@remix-run/node";
 import { Outlet } from "@remix-run/react";
+
 import { requireUserId } from "~/application/session";
+
 import Navbar from "./components/navbar";
 
 export const meta: MetaFunction = () => [{ title: "Remix Notes" }];

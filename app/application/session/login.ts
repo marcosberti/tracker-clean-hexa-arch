@@ -1,13 +1,14 @@
 import { redirect } from "@remix-run/node";
-import { getSession } from "./getSession";
-import { USER_SESSION_KEY, sessionStorage } from "./sessionStorage";
 
-export type LoginArgs = {
+import { getSession } from "./get-session";
+import { USER_SESSION_KEY, sessionStorage } from "./session-storage";
+
+export interface LoginArgs {
   request: Request;
   userId: string;
   remember: boolean;
   redirectTo: string;
-};
+}
 
 export async function login({
   request,

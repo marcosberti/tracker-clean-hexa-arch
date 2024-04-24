@@ -2,10 +2,9 @@ import { ActionFunctionArgs, LoaderFunctionArgs, json } from "@remix-run/node";
 import { Form, Link, useActionData, useSearchParams } from "@remix-run/react";
 import { useEffect, useRef } from "react";
 
+import { login, checkLoggedOut } from "~/application/session";
 import { verifyPassword } from "~/application/users";
-import { login } from "~/application/session";
-
-import { checkLoggedOut } from "~/application/session";
+import { Button } from "~/presentation/components/ui/button";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   return checkLoggedOut(request);
@@ -103,12 +102,9 @@ export function LoginForm() {
       </div>
 
       <input type="hidden" name="redirectTo" value={redirectTo} />
-      <button
-        type="submit"
-        className="w-full rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 focus:bg-blue-400"
-      >
+      <Button type="submit" className="w-full">
         Log in
-      </button>
+      </Button>
       <div className="flex items-center justify-between">
         <div className="flex items-center">
           <input

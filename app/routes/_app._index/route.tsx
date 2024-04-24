@@ -1,4 +1,4 @@
-import Index, { meta, loader } from "~/presentation/home";
+import Index, { meta, loader, action } from "~/presentation/home";
 
-export { meta, loader };
+export { meta, loader, action };
 export default Index;

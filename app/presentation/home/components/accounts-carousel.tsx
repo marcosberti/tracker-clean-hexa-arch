@@ -27,7 +27,7 @@ export default function AccountsCarousel({ accounts }: AccountsCarouselArgs) {
         ))}
         <CarouselItem className="min-w-[130px] basis-[130px] h-[130px] pl-4">
           <Link
-            to="/create-account"
+            to="/create/account"
             className="w-full h-full p-4 flex justify-center items-center shadow-md rounded-lg opacity-50 hover:opacity-100 transition-opacity ease-out active:translate-y-[1px]"
           >
             <Plus className="size-8" />

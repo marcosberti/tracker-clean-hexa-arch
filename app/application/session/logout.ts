@@ -1,6 +1,7 @@
 import { redirect } from "@remix-run/node";
-import { getSession } from "./getSession";
-import { sessionStorage } from "./sessionStorage";
+
+import { getSession } from "./get-session";
+import { sessionStorage } from "./session-storage";
 
 export async function logout(request: Request) {
   const session = await getSession(request);
