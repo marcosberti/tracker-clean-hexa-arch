@@ -33,6 +33,17 @@ export function formatDate(
   return new Intl.DateTimeFormat("en-US", options).format(d);
 }
 
+export function getMonthDefaultValue() {
+  const [month, year] = Intl.DateTimeFormat("en-US", {
+    year: "numeric",
+    month: "2-digit",
+  })
+    .format(new Date())
+    .split("/");
+
+  return `${year}-${month}`;
+}
+
 export const COLORS = [
   "amber",
   "blue",
@@ -110,3 +121,5 @@ export const TAILWIND_TEXT = {
   yellow: "text-yellow-700",
   zinc: "text-zinc-700",
 };
+
+export const TYPES = ["income", "spent"];

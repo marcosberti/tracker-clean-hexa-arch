@@ -1,3 +1,4 @@
+import { useAsyncValue } from "@remix-run/react";
 import { ArrowDown, ArrowUp } from "lucide-react";
 
 import { AccountSelect } from "~/application/accounts";
@@ -6,11 +7,14 @@ import { formatAmount } from "~/presentation/utils";
 
 interface BalanceCardArgs {
   account: AccountSelect | undefined;
-  income: number;
-  spent: number;
 }
 
-export function BalanceCard({ account, income, spent }: BalanceCardArgs) {
+export function BalanceCard({ account }: BalanceCardArgs) {
+  const { income, spent } = useAsyncValue() as {
+    income: number;
+    spent: number;
+  };
+
   return (
     <Card color="stone" className="w-[275px]">
       <Card.Header asChild>

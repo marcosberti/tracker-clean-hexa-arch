@@ -3,9 +3,10 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "~/db.server";
 import { TransactionsE } from "~/domain/entity";
 import { TransactionRepositoryI } from "~/domain/port";
+import { TransactionSchema } from "~/domain/schema";
 
 export function TransactionRepository(): TransactionRepositoryI {
-  function getTransactionById<T extends Prisma.TransactionsSelect>(
+  async function getTransactionById<T extends Prisma.TransactionsSelect>(
     userId: TransactionsE["userId"],
     accountId: TransactionsE["accountId"],
     id: TransactionsE["id"],
@@ -30,19 +31,24 @@ export function TransactionRepository(): TransactionRepositoryI {
     from: string,
     to: string,
   ) {
-    return prisma.transactions.findMany({
-      select,
-      where: {
-        userId,
-        accountId,
-        createdAt: {
-          gte: from,
-          lte: to,
-        },
+    const where = {
+      userId,
+      accountId,
+      createdAt: {
+        gte: from,
+        lte: to,
       },
-      skip,
-      take,
-    });
+    };
+
+    return prisma.$transaction([
+      prisma.transactions.count({ where }),
+      prisma.transactions.findMany({
+        select,
+        where,
+        skip,
+        take,
+      }),
+    ]);
   }
 
   async function getTransactionSummarizedByType(
@@ -75,9 +81,31 @@ export function TransactionRepository(): TransactionRepositoryI {
     };
   }
 
-  function createTransaction() {}
+  function createTransaction(
+    data: typeof TransactionSchema._type & {
+      userId: TransactionsE["userId"];
+      accountId: TransactionsE["accountId"];
+    },
+  ) {
+    return prisma.transactions.create({
+      data,
+    });
+  }
 
-  function deleteTransaction() {}
+  async function deleteTransaction(
+    userId: TransactionsE["userId"],
+    accountId: TransactionsE["accountId"],
+    id: TransactionsE["id"],
+  ) {
+    const transaction = await getTransactionById(userId, accountId, id, {
+      id: true,
+    });
+    if (!transaction) {
+      throw new Error("could not find the transaction");
+    }
+
+    return prisma.transactions.delete({ where: { userId, accountId, id } });
+  }
 
   return {
     getTransactionsByAccount,

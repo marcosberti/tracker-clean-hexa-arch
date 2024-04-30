@@ -1,6 +1,7 @@
 import { Prisma } from "@prisma/client";
 
 import { CategoriesE } from "../entity";
+import { CategorySchema } from "../schema";
 
 export interface CategoryRepositoryI {
   getCategoryById: <T extends Prisma.CategoriesSelect>(
@@ -13,10 +14,9 @@ export interface CategoryRepositoryI {
     select: T,
   ) => Promise<Prisma.CategoriesGetPayload<{ select: T }>[] | null>;
   createCategory: (
-    userId: CategoriesE["userId"],
-    name: CategoriesE["name"],
-    color: CategoriesE["color"],
-    icon: CategoriesE["icon"],
+    data: typeof CategorySchema._type & {
+      userId: CategoriesE["userId"];
+    },
   ) => Promise<CategoriesE>;
   // updateAccount: (
   //   id: AccountsE["id"],

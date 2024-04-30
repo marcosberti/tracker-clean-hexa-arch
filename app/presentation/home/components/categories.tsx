@@ -1,4 +1,4 @@
-import { Link } from "@remix-run/react";
+import { Link, useAsyncValue } from "@remix-run/react";
 import clsx from "clsx";
 import { Plus } from "lucide-react";
 
@@ -7,11 +7,9 @@ import { Icon } from "~/presentation/components";
 import { DeleteButton } from "~/presentation/components/delete-button";
 import { TAILWIND_BG, TAILWIND_TEXT } from "~/presentation/utils";
 
-interface CategoriesArgs {
-  categories: CategorySelect[];
-}
+export default function Categories() {
+  const categories = useAsyncValue() as CategorySelect[];
 
-export default function Categories({ categories }: CategoriesArgs) {
   return (
     <>
       <div className="p-4 rounded-lg shadow-lg">

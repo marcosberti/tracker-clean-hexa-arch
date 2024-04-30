@@ -15,14 +15,14 @@ import {
 
 interface DeleteButtonArgs {
   id: string;
-  entity: string;
+  entity: "account" | "currency" | "category" | "transaction";
 }
 
 export function DeleteButton({ id, entity }: DeleteButtonArgs) {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        <Button variant="ghost" className="size-8 p-0">
+        <Button variant="ghost" className="p-0 h-auto flex gap-2 size-8">
           <Trash2 className="size-4 text-red-700" />
         </Button>
       </DialogTrigger>
@@ -37,7 +37,7 @@ export function DeleteButton({ id, entity }: DeleteButtonArgs) {
         <DialogFooter>
           <DialogClose asChild>
             <Form method="post">
-              <input hidden name={entity} value={id} />
+              <input hidden name={entity} defaultValue={id} />
               <Button
                 type="submit"
                 name="intent"

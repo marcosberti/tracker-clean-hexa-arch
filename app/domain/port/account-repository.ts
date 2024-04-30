@@ -1,6 +1,7 @@
 import { Prisma } from "@prisma/client";
 
 import { AccountsE } from "../entity";
+import { AccountSchema } from "../schema";
 
 export interface AccountRepositoryI {
   getAccountById: <T extends Prisma.AccountsSelect>(
@@ -13,24 +14,23 @@ export interface AccountRepositoryI {
     select: T,
   ) => Promise<Prisma.AccountsGetPayload<{ select: T }>[] | null>;
   createAccount: (
-    name: AccountsE["name"],
-    color: AccountsE["color"],
-    icon: AccountsE["icon"],
-    main: AccountsE["main"],
-    userId: AccountsE["userId"],
-    currencyId: AccountsE["currencyId"],
+    data: Omit<typeof AccountSchema._type, "main"> & {
+      userId: AccountsE["userId"];
+      main: boolean;
+    },
   ) => Promise<AccountsE>;
-  // updateAccount: (
-  //   id: AccountsE["id"],
-  //   name: AccountsE["name"],
-  //   color: AccountsE["color"],
-  //   icon: AccountsE["icon"],
-  //   main: AccountsE["main"],
-  //   userId: AccountsE["userId"],
-  //   currencyId: AccountsE["currencyId"],
-  // ) => Promise<AccountsE>;
-  deleteAccount: (
-    id: AccountsE["id"],
+  updateAccount: (
     userId: AccountsE["userId"],
+    id: AccountsE["id"],
+    data: Partial<
+      Omit<typeof AccountSchema._type, "main"> & {
+        balance?: number;
+        main?: boolean;
+      }
+    >,
+  ) => Promise<AccountsE>;
+  deleteAccount: (
+    userId: AccountsE["userId"],
+    id: AccountsE["id"],
   ) => Promise<AccountsE>;
 }

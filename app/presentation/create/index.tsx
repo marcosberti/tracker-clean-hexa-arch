@@ -29,7 +29,7 @@ export function loader({ request }: LoaderFunctionArgs) {
   return json({ items, entity });
 }
 
-export default function CreateAccount() {
+export default function CreateEntity() {
   const { entity, items } = useLoaderData<typeof loader>();
 
   return (

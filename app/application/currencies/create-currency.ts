@@ -17,8 +17,7 @@ export async function createCurrency(
     return { errors };
   }
 
-  const { name, code } = data;
-  const account = await Repository.currency.createCurrency(userId, name, code);
+  const account = await Repository.currency.createCurrency({ ...data, userId });
 
   return { account };
 }

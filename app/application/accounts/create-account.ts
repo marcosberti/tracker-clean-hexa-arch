@@ -17,15 +17,11 @@ export async function createAccount(
     return { errors };
   }
 
-  const { name, color, currencyId, icon, main } = data;
-  const account = await Repository.account.createAccount(
-    name,
-    color,
-    icon,
-    main === "on",
+  const account = await Repository.account.createAccount({
+    ...data,
     userId,
-    currencyId,
-  );
+    main: data.main === "on",
+  });
 
   return { account };
 }

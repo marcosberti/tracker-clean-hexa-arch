@@ -1,4 +1,4 @@
-import Index, { loader } from "~/presentation/account";
+import Index, { action, loader } from "~/presentation/account";
 
-export { loader };
+export { action, loader };
 export default Index;

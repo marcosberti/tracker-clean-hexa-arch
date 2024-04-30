@@ -68,7 +68,7 @@ model Accounts {
   id String @id @default(cuid())
 
   name String @unique
-  balance Decimal
+  balance Decimal @default(0)
   icon String
   color String
   main Boolean
@@ -127,7 +127,7 @@ model Installments {
   title String
   description String?
   installments Int
-  paidInstallments Int
+  paidInstallments Int @default(0)
   active Boolean @default(true)
   firstPaymentDate DateTime @default(now())
 

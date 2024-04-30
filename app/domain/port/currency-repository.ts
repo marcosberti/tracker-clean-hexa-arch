@@ -1,6 +1,7 @@
 import { Prisma } from "@prisma/client";
 
 import { CurrenciesE } from "../entity";
+import { CurrencySchema } from "../schema";
 
 export interface CurrencyRepositoryI {
   getCurrencyById: <T extends Prisma.CurrenciesSelect>(
@@ -13,9 +14,9 @@ export interface CurrencyRepositoryI {
     select: T,
   ) => Promise<Prisma.CurrenciesGetPayload<{ select: T }>[] | null>;
   createCurrency: (
-    userId: CurrenciesE["userId"],
-    name: CurrenciesE["name"],
-    core: CurrenciesE["code"],
+    data: typeof CurrencySchema._type & {
+      userId: CurrenciesE["userId"];
+    },
   ) => Promise<CurrenciesE>;
   // updateAccount: (
   //   id: AccountsE["id"],

@@ -13,6 +13,7 @@ const SELECT = {
 
   currency: {
     select: {
+      id: true,
       code: true,
     },
   },

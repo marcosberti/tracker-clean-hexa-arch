@@ -3,6 +3,7 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "~/db.server";
 import { CategoriesE } from "~/domain/entity";
 import { CategoryRepositoryI } from "~/domain/port";
+import { CategorySchema } from "~/domain/schema";
 
 export function CategoryRepository(): CategoryRepositoryI {
   function getCategoryById<T extends Prisma.CategoriesSelect>(
@@ -27,18 +28,12 @@ export function CategoryRepository(): CategoryRepositoryI {
   }
 
   function createCategory(
-    userId: string,
-    name: string,
-    color: string,
-    icon: string,
+    data: typeof CategorySchema._type & {
+      userId: CategoriesE["userId"];
+    },
   ) {
     return prisma.categories.create({
-      data: {
-        name,
-        color,
-        icon,
-        userId,
-      },
+      data,
     });
   }
 

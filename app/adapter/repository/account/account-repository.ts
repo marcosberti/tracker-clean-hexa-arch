@@ -3,6 +3,7 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "~/db.server";
 import { AccountsE } from "~/domain/entity";
 import { AccountRepositoryI } from "~/domain/port";
+import { AccountSchema } from "~/domain/schema";
 
 export function AccountRepository(): AccountRepositoryI {
   function getAccountById<T extends Prisma.AccountsSelect>(
@@ -27,29 +28,38 @@ export function AccountRepository(): AccountRepositoryI {
   }
 
   function createAccount(
-    name: string,
-    color: string,
-    icon: string,
-    main: boolean,
-    userId: string,
-    currencyId: string,
+    data: Omit<typeof AccountSchema._type, "main"> & {
+      userId: AccountsE["userId"];
+      main: boolean;
+    },
   ) {
     return prisma.accounts.create({
-      data: {
-        name,
-        color,
-        icon,
-        main,
-        currencyId,
+      data,
+    });
+  }
+
+  function updateAccount(
+    userId: AccountsE["userId"],
+    id: AccountsE["id"],
+    data: Partial<
+      Omit<typeof AccountSchema._type, "main"> & {
+        balance?: number;
+        main?: boolean;
+      }
+    >,
+  ) {
+    return prisma.accounts.update({
+      data,
+      where: {
         userId,
-        balance: 0,
+        id,
       },
     });
   }
 
   async function deleteAccount(
-    id: AccountsE["id"],
     userId: AccountsE["userId"],
+    id: AccountsE["id"],
   ) {
     const account = await prisma.accounts.findFirst({ where: { id, userId } });
     if (!account) {
@@ -59,7 +69,11 @@ export function AccountRepository(): AccountRepositoryI {
     return prisma.accounts.delete({ where: { id } });
   }
 
-  // function updateAccount() {}
-
-  return { getAccountById, getAccounts, createAccount, deleteAccount };
+  return {
+    getAccountById,
+    getAccounts,
+    createAccount,
+    updateAccount,
+    deleteAccount,
+  };
 }

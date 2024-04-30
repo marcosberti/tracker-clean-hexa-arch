@@ -1,5 +1,7 @@
-import { Form, useActionData, useLoaderData } from "@remix-run/react";
+import { Form } from "@remix-run/react";
 
+import { AccountSelect } from "~/application/accounts";
+import { CurrencySelect } from "~/application/currencies";
 import { IconsCombobox } from "~/presentation/components";
 import { Button } from "~/presentation/components/ui/button";
 import { Checkbox } from "~/presentation/components/ui/checkbox";
@@ -15,12 +17,21 @@ import {
 } from "~/presentation/components/ui/select";
 import { COLORS, TAILWIND_BG } from "~/presentation/utils";
 
-import { action, loader } from "../index";
+interface AccountFormArgs {
+  account?: AccountSelect;
+  currencies: CurrencySelect[];
+  errors:
+    | {
+        name?: [string] | undefined;
+        icon?: [string] | undefined;
+        color?: [string] | undefined;
+        currencyId?: [string] | undefined;
+        main?: [string] | undefined;
+      }
+    | undefined;
+}
 
-export default function AccountForm() {
-  const { errors } = useActionData<typeof action>() ?? {};
-  const { currencies } = useLoaderData<typeof loader>();
-
+export function AccountForm({ account, currencies, errors }: AccountFormArgs) {
   return (
     <Form method="post" className="w-[50%]">
       <div className="flex gap-2 items-center">
@@ -35,6 +46,7 @@ export default function AccountForm() {
             <Input
               id="name"
               name="name"
+              defaultValue={account?.name}
               aria-invalid={errors?.name ? true : undefined}
               aria-describedby="name-error"
             />
@@ -55,6 +67,7 @@ export default function AccountForm() {
           <div className="mt-1 w-full">
             <Select
               name="currencyId"
+              defaultValue={account?.currency.id}
               aria-invalid={errors?.currencyId ? true : undefined}
               aria-describedby="currency-error"
             >
@@ -84,6 +97,7 @@ export default function AccountForm() {
           <Label htmlFor="icon">Icon</Label>
           <IconsCombobox
             name="icon"
+            defaultIcon={account?.icon}
             aria-invalid={errors?.icon ? true : undefined}
             aria-describedby="icon-error"
           />
@@ -95,13 +109,14 @@ export default function AccountForm() {
         </div>
         <div className="basis-[50%]">
           <Label htmlFor="color">Color</Label>
-          <Select name="color">
+          <Select
+            name="color"
+            defaultValue={account?.color}
+            aria-invalid={errors?.color ? true : undefined}
+            aria-describedby="color-error"
+          >
             <SelectTrigger>
-              <SelectValue
-                placeholder="Select a color"
-                aria-invalid={errors?.color ? true : undefined}
-                aria-describedby="color-error"
-              />
+              <SelectValue placeholder="Select a color" />
             </SelectTrigger>
             <SelectContent>
               {COLORS.map((color) => (
@@ -123,7 +138,7 @@ export default function AccountForm() {
       </div>
       <div className="mt-3">
         <div className="flex items-center space-x-2">
-          <Checkbox id="main" name="main" />
+          <Checkbox id="main" name="main" defaultChecked={account?.main} />
           <Label
             htmlFor="main"
             className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
@@ -134,7 +149,7 @@ export default function AccountForm() {
       </div>
       <div className="mt-6">
         <Button type="submit" className="w-full">
-          Create
+          {account ? "Edit" : "Create"}
         </Button>
       </div>
     </Form>

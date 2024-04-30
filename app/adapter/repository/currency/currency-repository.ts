@@ -3,6 +3,7 @@ import { Prisma } from "@prisma/client";
 import { prisma } from "~/db.server";
 import { CurrenciesE } from "~/domain/entity";
 import { CurrencyRepositoryI } from "~/domain/port";
+import { CurrencySchema } from "~/domain/schema";
 
 export function CurrencyRepository(): CurrencyRepositoryI {
   function getCurrencyById<T extends Prisma.CurrenciesSelect>(
@@ -27,16 +28,12 @@ export function CurrencyRepository(): CurrencyRepositoryI {
   }
 
   function createCurrency(
-    userId: CurrenciesE["userId"],
-    name: CurrenciesE["name"],
-    code: CurrenciesE["code"],
+    data: typeof CurrencySchema._type & {
+      userId: CurrenciesE["userId"];
+    },
   ) {
     return prisma.currencies.create({
-      data: {
-        name,
-        code,
-        userId,
-      },
+      data,
     });
   }
 

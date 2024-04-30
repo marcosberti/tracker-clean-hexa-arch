@@ -4,12 +4,12 @@ import {
   json,
   redirect,
 } from "@remix-run/node";
+import { useActionData, useLoaderData } from "@remix-run/react";
 
 import { createAccount } from "~/application/accounts";
 import { getCurrencies } from "~/application/currencies";
 import { requireUserId } from "~/application/session";
-
-import Form from "./components/form";
+import { AccountForm } from "~/presentation/components";
 
 export async function action({ request }: ActionFunctionArgs) {
   const userId = await requireUserId(request);
@@ -20,9 +20,9 @@ export async function action({ request }: ActionFunctionArgs) {
     return json({ errors }, { status: 400 });
   }
 
-  return redirect(`/accounts/${account.id}`, {
+  return redirect(`/account/${account.id}`, {
     status: 201,
-    headers: { "X-Remix-Redirect": `/accounts/${account.id}` },
+    headers: { "X-Remix-Redirect": `/account/${account.id}` },
   });
 }
 
@@ -34,5 +34,8 @@ export async function loader({ request }: LoaderFunctionArgs) {
 }
 
 export default function CreateAccount() {
-  return <Form />;
+  const { errors } = useActionData<typeof action>() ?? {};
+  const { currencies } = useLoaderData<typeof loader>();
+
+  return <AccountForm currencies={currencies} errors={errors} />;
 }

@@ -15,11 +15,12 @@ import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 
 interface IconsComboboxArgs {
   name: string;
+  defaultIcon?: string;
 }
-export function IconsCombobox({ name }: IconsComboboxArgs) {
+export function IconsCombobox({ name, defaultIcon }: IconsComboboxArgs) {
   const [open, setOpen] = React.useState(false);
   const [term, setTerm] = React.useState("");
-  const [icon, setIcon] = React.useState("");
+  const [icon, setIcon] = React.useState(defaultIcon);
 
   const allIcons = Object.keys(LucideIcons) as (keyof typeof LucideIcons)[];
   let icons = allIcons;

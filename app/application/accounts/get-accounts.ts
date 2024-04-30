@@ -13,6 +13,7 @@ const SELECT = {
 
   currency: {
     select: {
+      id: true,
       code: true,
     },
   },
@@ -21,7 +22,10 @@ const SELECT = {
 export type AccountSelect = {
   [Property in keyof Omit<typeof SELECT, "currency" | "main">]: string;
 } & {
+  main: boolean;
+} & {
   currency: {
+    id: string;
     code: string;
   };
 };

@@ -1,50 +1,56 @@
-import { LoaderFunctionArgs, json } from "@remix-run/node";
-import { Form, Link, useLoaderData, useSubmit } from "@remix-run/react";
 import {
-  ArrowUp,
-  Building,
-  MoreVerticalIcon,
-  Pencil,
-  Plus,
-  Trash2,
-} from "lucide-react";
+  ActionFunctionArgs,
+  LoaderFunctionArgs,
+  defer,
+  json,
+} from "@remix-run/node";
+import { Await, Outlet, useActionData, useLoaderData } from "@remix-run/react";
 import invariant from "tiny-invariant";
 
 import { getAccountById } from "~/application/accounts";
+import { getInstallmentsByAccount } from "~/application/installment";
+import { getScheduledByAccount } from "~/application/scheduled";
 import { requireUserId } from "~/application/session";
 import {
-  TransactionsSelect,
+  deleteTransaction,
+  getTransactionSummarizedByType,
   getTransactionsByAccount,
 } from "~/application/transactions";
-import { Breadcrumb, BalanceCard, Card } from "~/presentation/components";
-import { Badge } from "~/presentation/components/ui/badge";
-import { Button } from "~/presentation/components/ui/button";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "~/presentation/components/ui/carousel";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "~/presentation/components/ui/dropdown-menu";
-import { formatAmount, formatDate } from "~/presentation/utils";
+import { Breadcrumb, BalanceCard } from "~/presentation/components";
+import { useActionToast } from "~/presentation/hooks";
+import { getMonthDefaultValue } from "~/presentation/utils";
 
-import { Input } from "../components/ui/input";
+import { ExpensesCarousel } from "./components/expense-carousel";
+import { Transactions } from "./components/transactions";
 
-function getMonthDefaultValue() {
-  const [month, year] = Intl.DateTimeFormat("en-US", {
-    year: "numeric",
-    month: "2-digit",
-  })
-    .format(new Date())
-    .split("/");
+export const ITEMS_PER_PAGE = 12;
 
-  return `${year}-${month}`;
+type Actions = "delete";
+type Entity = "transaction";
+
+export async function action({ request, params }: ActionFunctionArgs) {
+  invariant(params.id, "account id missing in params");
+
+  const { id } = params;
+  const userId = await requireUserId(request);
+
+  const formData = await request.formData();
+  const intent = formData.get("intent") as string;
+  const [action, entity] = intent.split("-") as [Actions, Entity];
+
+  let errors;
+  let message;
+
+  if (action === "delete" && entity === "transaction") {
+    const transaction = formData.get("transaction");
+    invariant(typeof transaction === "string", "missing transaction");
+
+    const result = await deleteTransaction(userId, id, transaction);
+    errors = result.errors;
+    message = !errors ? "Transaction deleted" : null;
+  }
+
+  return json({ intent, message, errors }, { status: errors ? 400 : 200 });
 }
 
 export async function loader({ request, params }: LoaderFunctionArgs) {
@@ -52,155 +58,78 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 
   const url = new URL(request.url);
   let month = url.searchParams.get("month") as string;
+  let page = Number(url.searchParams.get("page"));
 
   if (!month) {
     month = getMonthDefaultValue();
   }
 
-  const { id } = params;
+  if (!page) {
+    page = 1;
+  }
 
-  console.log(">>>params", month);
+  const { id } = params;
 
   const userId = await requireUserId(request);
   const account = await getAccountById(userId, id);
-  const transactions = await getTransactionsByAccount(
+  const scheduled = getScheduledByAccount(userId, account.id);
+  const installments = getInstallmentsByAccount(userId, account.id);
+  const transactions = getTransactionsByAccount(
     userId,
     account.id,
-    1,
+    page,
+    ITEMS_PER_PAGE,
     month,
   );
+  const monthData = getTransactionSummarizedByType(userId, account.id, month);
 
   const items = [{ label: "Home", link: "/" }, { label: account.name }];
 
-  return json({ account, month, items, transactions });
+  return defer({
+    account,
+    month,
+    page,
+    items,
+    transactions,
+    monthData,
+    expenses: Promise.all([scheduled, installments]),
+  });
 }
 
 export default function Account() {
-  const { account, month, items, transactions } =
+  const { account, month, page, items, transactions, expenses, monthData } =
     useLoaderData<typeof loader>();
-
-  const income = 0;
-  const spent = 0;
+  const actionData = useActionData<typeof action>();
+  useActionToast(actionData);
 
   return (
     <div className="h-full">
-      <div className="mb-8">
+      <div className="mb-8 h-10 flex items-center">
         <Breadcrumb items={items} />
       </div>
       <div className="flex gap-8 mb-4">
-        <BalanceCard account={account} income={income} spent={spent} />
-        <ExpensesCarousel />
+        <Await resolve={monthData}>
+          <BalanceCard account={account} />
+        </Await>
+        <Await resolve={expenses}>
+          <ExpensesCarousel currencyCode={account.currency.code} />
+        </Await>
       </div>
       <div className="h-[calc(100%-150px-3rem)] flex gap-4">
         <div className="basis-[60%] lg:basis-[50%]">
-          <TransactionList
-            month={month}
-            currencyCode={account.currency.code}
-            transactions={transactions}
-          />
+          <Await resolve={transactions}>
+            <Transactions
+              month={month}
+              page={page}
+              currencyCode={account.currency.code}
+            />
+          </Await>
+        </div>
+        <div className="basis-[40%] lg:basis-[50%]">
+          <Outlet />
         </div>
       </div>
     </div>
-  );
-}
-
-function ExpenseCard({ account }: { account: number }) {
-  return (
-    <Card color="white">
-      <Card.Header asChild>
-        <div className="flex gap-2 items-center">
-          <p>
-            name{" "}
-            <Badge variant="secondary" className="text-xs font-light">
-              {account === 1 ? "scheduled" : "installment"}
-            </Badge>
-          </p>
-        </div>
-      </Card.Header>
-      <Card.Body>
-        <p className="font-bold text-2xl">{formatAmount(123123, "ARS")}</p>
-        {account === 1 ? (
-          <p className="text-xs">Active since: {formatDate(new Date())}</p>
-        ) : (
-          <p className="text-xs">Installments: 3/12</p>
-        )}
-      </Card.Body>
-    </Card>
-  );
-}
-
-function ExpensesCarousel() {
-  return (
-    <Carousel className="w-full max-w-[calc(100vw-275px-128px-6rem)]">
-      <CarouselContent className="h-[136px] -ml-4">
-        {[1, 2].map((account) => (
-          <CarouselItem key={account} className="pl-4 basis-[275px]">
-            <ExpenseCard account={account} />
-          </CarouselItem>
-        ))}
-        <CarouselItem className="min-w-[130px] basis-[130px] h-[130px] pl-4">
-          <Link
-            to="/create/account"
-            className="w-full h-full p-4 flex justify-center items-center shadow-md rounded-lg opacity-50 hover:opacity-100 transition-opacity ease-out active:translate-y-[1px]"
-          >
-            <Plus className="size-8" />
-          </Link>
-        </CarouselItem>
-      </CarouselContent>
-      <CarouselPrevious className="-left-4 disabled:opacity-0" />
-      <CarouselNext className="-right-4 disabled:opacity-0" />
-    </Carousel>
-  );
-}
-
-interface TransactionListArgs {
-  month: string;
-  currencyCode: string;
-  transactions: TransactionsSelect[];
-}
-
-function TransactionList({
-  month,
-  currencyCode,
-  transactions,
-}: TransactionListArgs) {
-  const submit = useSubmit();
-
-  return (
-    <>
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="font-semibold mb-2">Transactions</h2>
-        <div className="flex justify-end items-center gap-2">
-          <Form method="get">
-            <Input
-              name="month"
-              type="month"
-              defaultValue={month}
-              onChange={(e) => submit(e.currentTarget.form)}
-            />
-          </Form>
-          <Button variant="outline">
-            <Plus className="size-4" />
-          </Button>
-        </div>
-      </div>
-      <ol className="basis-[60%] rounded shadow-md">
-        {!transactions.length ? (
-          <li className="w-full flex items-center justify-between px-4 py-2 border-b-2">
-            <p className="w-full font-semibold text-xs text-center">
-              no transactions yet
-            </p>
-          </li>
-        ) : null}
-        {transactions.map((t) => (
-          <Item key={t.id} currencyCode={currencyCode} transaction={t} />
-        ))}
-        {/* <Item account={account} />
-        <Item account={account} />
-        <Item account={account} />
-        <SchedItem account={account} /> */}
-      </ol>
-    </>
   );
 }
 
@@ -235,41 +164,3 @@ function TransactionList({
 //     </li>
 //   );
 // }
-
-interface ItemArgs {
-  currencyCode: string;
-  transaction: TransactionsSelect;
-}
-
-function Item({ currencyCode, transaction }: ItemArgs) {
-  return (
-    <li className="w-full flex items-center justify-between px-4 py-2 border-b-2">
-      <div className="flex items-center gap-2">
-        <Building className="size-6" />
-        <div className="flex flex-col">
-          <span className="font-semibold">{transaction.title}</span>
-          <span className="text-xs">{formatDate(transaction.createdAt)}</span>
-        </div>
-      </div>
-      <div className="flex items-center gap-2">
-        <ArrowUp className="size-4 text-green-600" />
-        <p className="font-bold">
-          {formatAmount(Number(transaction.amount), currencyCode)}
-        </p>
-        <DropdownMenu>
-          <DropdownMenuTrigger>
-            <MoreVerticalIcon className="size-4" />
-          </DropdownMenuTrigger>
-          <DropdownMenuContent>
-            <DropdownMenuItem className="text-gray-600 flex gap-2 items-center">
-              <Pencil className="size-4" /> <span>Edit</span>
-            </DropdownMenuItem>
-            <DropdownMenuItem className="text-gray-600 flex gap-2 items-center">
-              <Trash2 className="size-4" /> <span>Delete</span>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-    </li>
-  );
-}

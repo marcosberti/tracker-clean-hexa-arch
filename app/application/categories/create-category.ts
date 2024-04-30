@@ -17,13 +17,7 @@ export async function createCategory(
     return { errors };
   }
 
-  const { name, color, icon } = data;
-  const account = await Repository.category.createCategory(
-    userId,
-    name,
-    color,
-    icon,
-  );
+  const account = await Repository.category.createCategory({ ...data, userId });
 
   return { account };
 }
