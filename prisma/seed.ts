@@ -43,14 +43,14 @@ const CATEGORIES = [
 
 const ACCOUNTS = [
   {
-    name: "BBVA",
+    name: "bank",
     main: true,
     balance: 0,
     color: "lime",
     icon: "Banknote",
   },
   {
-    name: "Wise",
+    name: "vbank",
     main: false,
     balance: 0,
     color: "lime",
