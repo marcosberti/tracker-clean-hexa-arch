@@ -1,4 +1,5 @@
 import { Repository } from "~/adapter/repository";
+import { prisma } from "~/db.server";
 import { TransactionsE } from "~/domain/entity";
 import { TransactionSchema } from "~/domain/schema";
 
@@ -31,13 +32,14 @@ export async function createTransaction(
   const amount = data.type === "spent" ? data.amount * -1 : data.amount;
   const balance = Number(account.balance) + amount;
 
-  const transaction = await Repository.transaction.createTransaction({
-    ...data,
-    userId,
-    accountId,
-  });
-
-  await Repository.account.updateAccount(userId, accountId, { balance });
+  const [transaction] = await prisma.$transaction([
+    Repository.transaction.createTransaction({
+      ...data,
+      userId,
+      accountId,
+    }),
+    Repository.account.updateAccount(userId, accountId, { balance }),
+  ]);
 
   return { transaction };
 }

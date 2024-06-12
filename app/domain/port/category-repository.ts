@@ -18,15 +18,11 @@ export interface CategoryRepositoryI {
       userId: CategoriesE["userId"];
     },
   ) => Promise<CategoriesE>;
-  // updateAccount: (
-  //   id: AccountsE["id"],
-  //   name: AccountsE["name"],
-  //   color: AccountsE["color"],
-  //   icon: AccountsE["icon"],
-  //   main: AccountsE["main"],
-  //   userId: AccountsE["userId"],
-  //   currencyId: AccountsE["currencyId"],
-  // ) => Promise<AccountsE>;
+  updateCategory: (
+    userId: CategoriesE["userId"],
+    id: CategoriesE["id"],
+    data: typeof CategorySchema._type,
+  ) => Prisma.PrismaPromise<CategoriesE>;
   deleteCategory: (
     userId: CategoriesE["userId"],
     id: CategoriesE["id"],

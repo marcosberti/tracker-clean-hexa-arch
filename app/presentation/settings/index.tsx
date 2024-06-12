@@ -4,17 +4,38 @@ import {
   defer,
   json,
 } from "@remix-run/node";
-import { Await, useActionData, useLoaderData } from "@remix-run/react";
+import {
+  Await,
+  Link,
+  Outlet,
+  useActionData,
+  useLoaderData,
+} from "@remix-run/react";
+import { PlusCircle } from "lucide-react";
+import { Suspense } from "react";
 import invariant from "tiny-invariant";
 
 import { getCategories, deleteCategory } from "~/application/categories";
 import { deleteCurrency, getCurrencies } from "~/application/currencies";
 import { requireUserId } from "~/application/session";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "~/presentation/components/ui/card";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "~/presentation/components/ui/tabs";
 import { useActionToast } from "~/presentation/hooks";
 
-import { CategoryItems } from "./category-items";
-import { CurrencyItems } from "./currency-items";
-import { EntityCarousel } from "./entity-carousel";
+import { Button } from "../components/ui/button";
+
+import { Categories } from "./categories";
+import { Currencies } from "./currencies";
 
 export async function action({ request }: ActionFunctionArgs) {
   const userId = await requireUserId(request);
@@ -60,29 +81,82 @@ export default function Settings() {
   const actionData = useActionData<typeof action>();
   useActionToast(actionData);
 
+  // return (
+  //   <>
+  //     <div className="flex flex-col gap-4">
+  //       <Await resolve={currencies}>
+  //         <EntityCarousel
+  //           title="Currencies"
+  //           createRoute="/create/currency"
+  //           items={CurrencyItems}
+  //         />
+  //       </Await>
+  //       <Await resolve={categories}>
+  //         <EntityCarousel
+  //           title="Categories"
+  //           createRoute="/create/category"
+  //           items={CategoryItems}
+  //         />
+  //       </Await>
+  //     </div>
+  //   </>
+  // );
+
   return (
-    <>
-      <div className="flex align-top mb-8">
-        <h1 className="text-4xl font-bold">Settings</h1>
+    <main className="p-4 sm:p-6 grid gap-4 mt-8 md:gap-8 lg:grid-cols-2 xl:grid-cols-3">
+      <div className="xl:col-span-2">
+        <Tabs defaultValue="currencies">
+          <TabsList>
+            <TabsTrigger value="currencies">Currencies</TabsTrigger>
+            <TabsTrigger value="categories">Categories</TabsTrigger>
+          </TabsList>
+          <TabsContent value="currencies">
+            <Card className="bg-background">
+              <CardHeader className="px-7">
+                <div className="flex items-center justify-between">
+                  <CardTitle>Currencies</CardTitle>
+                  <Button asChild>
+                    <Link to="create/currency">
+                      <PlusCircle className="size-4" />
+                    </Link>
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <Suspense fallback={null}>
+                  <Await resolve={currencies}>
+                    <Currencies />
+                  </Await>
+                </Suspense>
+              </CardContent>
+            </Card>
+          </TabsContent>
+          <TabsContent value="categories">
+            <Card className="bg-background">
+              <CardHeader className="px-7">
+                <div className="flex items-center justify-between">
+                  <CardTitle>Categories</CardTitle>
+                  <Button asChild>
+                    <Link to="create/category">
+                      <PlusCircle className="size-4" />
+                    </Link>
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <Suspense fallback={null}>
+                  <Await resolve={categories}>
+                    <Categories />
+                  </Await>
+                </Suspense>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
-      <div className="flex flex-col gap-4">
-        <Await resolve={currencies}>
-          <EntityCarousel
-            title="Currencies"
-            createRoute="/create/currency"
-            items={CurrencyItems}
-          />
-        </Await>
-        <Await resolve={categories}>
-          <EntityCarousel
-            title="Categories"
-            createRoute="/create/category"
-            items={CategoryItems}
-          />
-        </Await>
-        <h2 className="text-lg font-semibold">Installments</h2>
-        <h2 className="text-lg font-semibold">Scheduled</h2>
+      <div>
+        <Outlet />
       </div>
-    </>
+    </main>
   );
 }

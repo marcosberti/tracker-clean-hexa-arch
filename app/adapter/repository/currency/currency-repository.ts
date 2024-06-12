@@ -7,8 +7,8 @@ import { CurrencySchema } from "~/domain/schema";
 
 export function CurrencyRepository(): CurrencyRepositoryI {
   function getCurrencyById<T extends Prisma.CurrenciesSelect>(
-    id: CurrenciesE["id"],
     userId: CurrenciesE["userId"],
+    id: CurrenciesE["id"],
     select: T,
   ) {
     return prisma.currencies.findFirst({ select, where: { id, userId } });
@@ -37,6 +37,20 @@ export function CurrencyRepository(): CurrencyRepositoryI {
     });
   }
 
+  function updateCurrency(
+    userId: CurrenciesE["userId"],
+    id: CurrenciesE["id"],
+    data: typeof CurrencySchema._type,
+  ) {
+    return prisma.currencies.update({
+      data,
+      where: {
+        id,
+        userId,
+      },
+    });
+  }
+
   async function deleteCurrency(
     userId: CurrenciesE["userId"],
     id: CurrenciesE["id"],
@@ -51,5 +65,11 @@ export function CurrencyRepository(): CurrencyRepositoryI {
     return prisma.currencies.delete({ where: { id } });
   }
 
-  return { getCurrencyById, getCurrencies, createCurrency, deleteCurrency };
+  return {
+    getCurrencyById,
+    getCurrencies,
+    createCurrency,
+    updateCurrency,
+    deleteCurrency,
+  };
 }

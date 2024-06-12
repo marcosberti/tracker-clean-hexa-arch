@@ -1,5 +1,11 @@
 import { Repository } from "~/adapter/repository";
+import { prisma } from "~/db.server";
 import { TransactionsE } from "~/domain/entity";
+
+type Transaction =
+  | ReturnType<typeof Repository.transaction.deleteTransaction>
+  | ReturnType<typeof Repository.account.updateAccount>
+  | ReturnType<typeof Repository.installments.updateInstallment>;
 
 export async function deleteTransaction(
   userId: TransactionsE["userId"],
@@ -16,19 +22,13 @@ export async function deleteTransaction(
         userId,
         accountId,
         transactionId,
-        { id: true, amount: true, type: true },
+        { id: true, amount: true, type: true, installmentId: true },
       ),
     ]);
 
     if (!account || !transaction) {
-      throw new Error("account or transaction not found");
+      return { errors: "account or transaction not found" };
     }
-
-    await Repository.transaction.deleteTransaction(
-      userId,
-      accountId,
-      transactionId,
-    );
 
     const amount =
       transaction.type === "spent"
@@ -37,7 +37,40 @@ export async function deleteTransaction(
 
     const balance = Number(account.balance) + amount;
 
-    await Repository.account.updateAccount(userId, accountId, { balance });
+    const prismaTransactions: Transaction[] = [
+      Repository.transaction.deleteTransaction(
+        userId,
+        accountId,
+        transactionId,
+      ),
+      Repository.account.updateAccount(userId, accountId, { balance }),
+    ];
+
+    if (transaction.installmentId) {
+      const installment = await Repository.installments.getInstallmentById(
+        userId,
+        accountId,
+        transaction.installmentId,
+        { id: true, installments: true, paidInstallments: true, active: true },
+      );
+
+      if (!installment) {
+        return { errors: "installment not found" };
+      }
+
+      const paidInstallments = installment.paidInstallments - 1;
+      const active = paidInstallments < installment.installments;
+      prismaTransactions.push(
+        Repository.installments.updateInstallment(
+          userId,
+          accountId,
+          installment.id,
+          { paidInstallments, active },
+        ),
+      );
+    }
+
+    await prisma.$transaction(prismaTransactions);
 
     return { transaction };
   } catch (e) {

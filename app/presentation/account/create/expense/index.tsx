@@ -4,16 +4,20 @@ import {
   json,
   redirect,
 } from "@remix-run/node";
-import { useLoaderData } from "@remix-run/react";
+import { useActionData, useLoaderData } from "@remix-run/react";
 import invariant from "tiny-invariant";
 
 import { getAccountById } from "~/application/accounts";
 import { getCategories } from "~/application/categories";
 import { getCurrencies } from "~/application/currencies";
-import { createExpense } from "~/application/expenses";
+import { createInstallment } from "~/application/installment";
+import { createScheduled } from "~/application/scheduled";
 import { requireUserId } from "~/application/session";
+import ExpenseForm, {
+  Errors,
+} from "~/presentation/account/components/expense-form";
 
-import Form from "./components/form";
+type ExpenseType = "scheduled" | "installment";
 
 export async function action({ request, params }: ActionFunctionArgs) {
   invariant(typeof params.id === "string", "missing account param");
@@ -21,11 +25,20 @@ export async function action({ request, params }: ActionFunctionArgs) {
   const accountId = params.id;
   const userId = await requireUserId(request);
   const formData = await request.formData();
+  const expenseType = formData.get("expenseType") as ExpenseType;
 
-  const { insErr, schedErr } = await createExpense(userId, accountId, formData);
+  if (expenseType === "installment") {
+    const { errors } = await createInstallment(userId, accountId, formData);
 
-  if (insErr || schedErr) {
-    return json({ insErr, schedErr }, { status: 400 });
+    if (errors) {
+      return json({ expenseType, errors }, { status: 400 });
+    }
+  } else {
+    const { errors } = await createScheduled(userId, accountId, formData);
+
+    if (errors) {
+      return json({ expenseType, errors }, { status: 400 });
+    }
   }
 
   return redirect(`/account/${accountId}`, {
@@ -58,14 +71,21 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
   };
 }
 
-export default function ScheduleForm() {
+export default function CreateExpense() {
   const { accountCurrencyCode, categories, currencies } =
     useLoaderData<typeof loader>();
+
+  const data = (useActionData<typeof action>() ?? {
+    expenseType: undefined,
+    errors: undefined,
+  }) as Errors;
+
   return (
-    <Form
+    <ExpenseForm
       accountCurrencyCode={accountCurrencyCode}
       categories={categories}
       currencies={currencies}
+      actionErrors={data}
     />
   );
 }

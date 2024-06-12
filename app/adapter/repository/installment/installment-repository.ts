@@ -39,6 +39,33 @@ export function InstallmentRepository(): InstallmentRepositoryI {
     });
   }
 
+  function getPendingInstallmentsByAccount<T extends Prisma.InstallmentsSelect>(
+    userId: InstallmentsE["userId"],
+    accountId: InstallmentsE["accountId"],
+    select: T,
+    from: string,
+    to: string,
+  ) {
+    const where = {
+      userId,
+      accountId,
+      active: true,
+      transactions: {
+        none: {
+          createdAt: {
+            gte: from,
+            lte: to,
+          },
+        },
+      },
+    };
+
+    return prisma.installments.findMany({
+      select,
+      where,
+    });
+  }
+
   function createInstallment(
     data: typeof InstallmentSchema._type & {
       userId: InstallmentsE["userId"];
@@ -50,14 +77,46 @@ export function InstallmentRepository(): InstallmentRepositoryI {
     });
   }
 
-  function deleteInstallment() {
-    //
+  function updateInstallment(
+    userId: InstallmentsE["userId"],
+    accountId: InstallmentsE["accountId"],
+    id: InstallmentsE["id"],
+    data: Partial<typeof InstallmentSchema._type>,
+  ) {
+    const where = {
+      userId,
+      accountId,
+      id,
+    };
+
+    return prisma.installments.update({
+      data,
+      where,
+    });
+  }
+
+  function deleteInstallment(
+    userId: InstallmentsE["userId"],
+    accountId: InstallmentsE["accountId"],
+    id: InstallmentsE["id"],
+  ) {
+    const where = {
+      userId,
+      accountId,
+      id,
+    };
+
+    return prisma.installments.delete({
+      where,
+    });
   }
 
   return {
     getInstallmentByAccount,
     getInstallmentById,
+    getPendingInstallmentsByAccount,
     createInstallment,
+    updateInstallment,
     deleteInstallment,
   };
 }

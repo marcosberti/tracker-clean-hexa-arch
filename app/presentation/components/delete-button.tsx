@@ -1,5 +1,4 @@
 import { Form } from "@remix-run/react";
-import { Trash2 } from "lucide-react";
 
 import { Button } from "~/presentation/components/ui/button";
 import {
@@ -15,17 +14,20 @@ import {
 
 interface DeleteButtonArgs {
   id: string;
-  entity: "account" | "currency" | "category" | "transaction";
+  entity:
+    | "account"
+    | "currency"
+    | "category"
+    | "transaction"
+    | "scheduled"
+    | "installment";
+  children: React.ReactNode;
 }
 
-export function DeleteButton({ id, entity }: DeleteButtonArgs) {
+export function DeleteButton({ id, entity, children }: DeleteButtonArgs) {
   return (
     <Dialog>
-      <DialogTrigger asChild>
-        <Button variant="ghost" className="p-0 h-auto flex gap-2 size-8">
-          <Trash2 className="size-4 text-red-700" />
-        </Button>
-      </DialogTrigger>
+      <DialogTrigger asChild>{children}</DialogTrigger>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Are you absolutely sure?</DialogTitle>

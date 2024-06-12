@@ -1,8 +1,13 @@
 import { useAsyncValue } from "@remix-run/react";
-import { ArrowDown, ArrowUp } from "lucide-react";
+import { ArrowDown, ArrowUp, DollarSign } from "lucide-react";
 
 import { AccountSelect } from "~/application/accounts";
-import { Card } from "~/presentation/components";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "~/presentation/components/ui/card";
 import { formatAmount } from "~/presentation/utils";
 
 interface BalanceCardArgs {
@@ -16,25 +21,28 @@ export function BalanceCard({ account }: BalanceCardArgs) {
   };
 
   return (
-    <Card color="stone" className="w-[275px]">
-      <Card.Header asChild>
-        <h2 className="font-semibold text-gray-500">Your balance</h2>
-      </Card.Header>
-      <Card.Body>
-        <p className="text-2xl font-bold">
+    <Card className="bg-background h-full min-w-[260px]">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="text-sm font-medium">Your balance</CardTitle>
+        <DollarSign className="h-4 w-4 text-muted-foreground" />
+      </CardHeader>
+      <CardContent>
+        <div className="text-2xl font-bold">
           {formatAmount(Number(account?.balance ?? 0), account?.currency.code)}
-        </p>
-        <div className="flex items-center gap-2 text-xs">
+        </div>
+
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <div className="flex gap-1">
             <ArrowUp className="size-4 text-green-600" />
             <p>{formatAmount(income, account?.currency.code)}</p>
           </div>
+
           <div className="flex gap-1">
             <ArrowDown className="size-4 text-red-600" />
             <p>{formatAmount(spent, account?.currency.code)}</p>
           </div>
         </div>
-      </Card.Body>
+      </CardContent>
     </Card>
   );
 }

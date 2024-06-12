@@ -4,7 +4,7 @@ import {
   json,
   redirect,
 } from "@remix-run/node";
-import { useLoaderData } from "@remix-run/react";
+import { useActionData, useLoaderData } from "@remix-run/react";
 import invariant from "tiny-invariant";
 
 import { getAccountById } from "~/application/accounts";
@@ -12,8 +12,7 @@ import { getCategories } from "~/application/categories";
 import { getCurrencies } from "~/application/currencies";
 import { requireUserId } from "~/application/session";
 import { createTransaction } from "~/application/transactions";
-
-import Form from "./components/form";
+import TransactionForm from "~/presentation/account/components/transaction-form";
 
 export async function action({ request, params }: ActionFunctionArgs) {
   invariant(typeof params.id === "string", "missing account param");
@@ -61,11 +60,14 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
 export default function CreateTransaction() {
   const { accountCurrencyCode, categories, currencies } =
     useLoaderData<typeof loader>();
+  const { errors } = useActionData<typeof action>() ?? {};
+
   return (
-    <Form
+    <TransactionForm
       accountCurrencyCode={accountCurrencyCode}
       categories={categories}
       currencies={currencies}
+      errors={errors}
     />
   );
 }

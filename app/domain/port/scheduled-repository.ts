@@ -15,11 +15,28 @@ export interface ScheduledRepositoryI {
     accountId: ScheduledE["accountId"],
     select: T,
   ) => Promise<Prisma.ScheduledGetPayload<{ select: T }>[] | null>;
+  getPendingScheduledByAccount: <T extends Prisma.ScheduledSelect>(
+    userId: ScheduledE["userId"],
+    accountId: ScheduledE["accountId"],
+    select: T,
+    from: string,
+    to: string,
+  ) => Promise<Prisma.ScheduledGetPayload<{ select: T }>[] | null>;
   createScheduled: (
     data: typeof ScheduledSchema._type & {
       userId: ScheduledE["userId"];
       accountId: ScheduledE["accountId"];
     },
-  ) => Promise<ScheduledE>;
-  deleteScheduled: () => void;
+  ) => Prisma.PrismaPromise<ScheduledE>;
+  updateScheduled: (
+    userId: ScheduledE["userId"],
+    accountId: ScheduledE["accountId"],
+    id: ScheduledE["id"],
+    data: Partial<typeof ScheduledSchema._type>,
+  ) => Prisma.PrismaPromise<ScheduledE>;
+  deleteScheduled: (
+    userId: ScheduledE["userId"],
+    accountId: ScheduledE["accountId"],
+    id: ScheduledE["id"],
+  ) => Prisma.PrismaPromise<ScheduledE>;
 }

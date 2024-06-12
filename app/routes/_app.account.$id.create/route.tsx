@@ -1,4 +1,4 @@
-import Index, { loader } from "~/presentation/account/create";
+import Index, { loader, shouldRevalidate } from "~/presentation/account/create";
 
-export { loader };
+export { loader, shouldRevalidate };
 export default Index;

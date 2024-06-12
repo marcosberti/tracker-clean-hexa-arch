@@ -1,6 +1,8 @@
 import { icons as LucideIcons, ChevronsUpDown } from "lucide-react";
 import * as React from "react";
 
+import { cn } from "../utils";
+
 import { Icon } from "./icon";
 import { Button } from "./ui/button";
 import {
@@ -16,8 +18,14 @@ import { Popover, PopoverContent, PopoverTrigger } from "./ui/popover";
 interface IconsComboboxArgs {
   name: string;
   defaultIcon?: string;
+  "aria-invalid": boolean | undefined;
 }
-export function IconsCombobox({ name, defaultIcon }: IconsComboboxArgs) {
+
+export function IconsCombobox({
+  name,
+  defaultIcon,
+  ["aria-invalid"]: ariaInvalid,
+}: IconsComboboxArgs) {
   const [open, setOpen] = React.useState(false);
   const [term, setTerm] = React.useState("");
   const [icon, setIcon] = React.useState(defaultIcon);
@@ -45,7 +53,10 @@ export function IconsCombobox({ name, defaultIcon }: IconsComboboxArgs) {
             variant="outline"
             role="combobox"
             aria-expanded={open}
-            className="justify-between w-full"
+            className={cn(
+              "justify-between w-full",
+              ariaInvalid && "border-destructive text-destructive",
+            )}
           >
             {icon ? allIcons.find((i) => i === icon) : "Select an icon..."}
             <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />

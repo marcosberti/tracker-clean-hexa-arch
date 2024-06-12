@@ -10,7 +10,7 @@ export function ErrorMessage({ message }: ErrorMessageArgs) {
       id="title-error"
       className={cn("mt-1 invisible ", message && "visible")}
     >
-      <p className="text-pink-600 text-sm">{message}</p>
+      <p className="text-destructive text-xs">{message}</p>
     </div>
   );
 }

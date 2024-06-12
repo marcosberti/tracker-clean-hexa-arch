@@ -2,7 +2,7 @@ import { Form } from "@remix-run/react";
 
 import { AccountSelect } from "~/application/accounts";
 import { CurrencySelect } from "~/application/currencies";
-import { IconsCombobox } from "~/presentation/components";
+import { ErrorMessage, IconsCombobox } from "~/presentation/components";
 import { Button } from "~/presentation/components/ui/button";
 import { Checkbox } from "~/presentation/components/ui/checkbox";
 import { Input } from "~/presentation/components/ui/input";
@@ -33,15 +33,10 @@ interface AccountFormArgs {
 
 export function AccountForm({ account, currencies, errors }: AccountFormArgs) {
   return (
-    <Form method="post" className="w-[50%]">
+    <Form method="post">
       <div className="flex gap-2 items-center">
         <div className="basis-[50%]">
-          <Label
-            htmlFor="name"
-            className="block text-sm font-medium text-gray-700"
-          >
-            Name
-          </Label>
+          <Label htmlFor="name">Name</Label>
           <div className="mt-1 w-full">
             <Input
               id="name"
@@ -50,28 +45,17 @@ export function AccountForm({ account, currencies, errors }: AccountFormArgs) {
               aria-invalid={errors?.name ? true : undefined}
               aria-describedby="name-error"
             />
-            {errors?.name ? (
-              <div className="pt-1 text-red-700" id="name-error">
-                {errors.name}
-              </div>
-            ) : null}
+            {errors?.name ? <ErrorMessage message={errors.name} /> : null}
           </div>
         </div>
         <div className="basis-[50%]">
-          <Label
-            htmlFor="currencyId"
-            className="block text-sm font-medium text-gray-700"
-          >
-            Currency
-          </Label>
+          <Label htmlFor="currencyId">Currency</Label>
           <div className="mt-1 w-full">
-            <Select
-              name="currencyId"
-              defaultValue={account?.currency.id}
-              aria-invalid={errors?.currencyId ? true : undefined}
-              aria-describedby="currency-error"
-            >
-              <SelectTrigger>
+            <Select name="currencyId" defaultValue={account?.currency.id}>
+              <SelectTrigger
+                aria-invalid={errors?.currencyId ? true : undefined}
+                aria-describedby="currency-error"
+              >
                 <SelectValue placeholder="Select a currency" />
               </SelectTrigger>
               <SelectContent>
@@ -85,14 +69,12 @@ export function AccountForm({ account, currencies, errors }: AccountFormArgs) {
               </SelectContent>
             </Select>
             {errors?.currencyId ? (
-              <div className="pt-1 text-red-700" id="currency-error">
-                {errors.currencyId}
-              </div>
+              <ErrorMessage message={errors.currencyId} />
             ) : null}
           </div>
         </div>
       </div>
-      <div className="flex gap-2 mt-2">
+      <div className="flex gap-2 mt-6">
         <div className="basis-[50%]">
           <Label htmlFor="icon">Icon</Label>
           <IconsCombobox
@@ -101,21 +83,15 @@ export function AccountForm({ account, currencies, errors }: AccountFormArgs) {
             aria-invalid={errors?.icon ? true : undefined}
             aria-describedby="icon-error"
           />
-          {errors?.icon ? (
-            <div className="pt-1 text-red-700" id="icon-error">
-              {errors.icon}
-            </div>
-          ) : null}
+          {errors?.icon ? <ErrorMessage message={errors.icon} /> : null}
         </div>
         <div className="basis-[50%]">
           <Label htmlFor="color">Color</Label>
-          <Select
-            name="color"
-            defaultValue={account?.color}
-            aria-invalid={errors?.color ? true : undefined}
-            aria-describedby="color-error"
-          >
-            <SelectTrigger>
+          <Select name="color" defaultValue={account?.color}>
+            <SelectTrigger
+              aria-invalid={errors?.color ? true : undefined}
+              aria-describedby="color-error"
+            >
               <SelectValue placeholder="Select a color" />
             </SelectTrigger>
             <SelectContent>
@@ -129,14 +105,10 @@ export function AccountForm({ account, currencies, errors }: AccountFormArgs) {
               ))}
             </SelectContent>
           </Select>
-          {errors?.color ? (
-            <div className="pt-1 text-red-700" id="color-error">
-              {errors.color}
-            </div>
-          ) : null}
+          {errors?.color ? <ErrorMessage message={errors.color} /> : null}
         </div>
       </div>
-      <div className="mt-3">
+      <div className="mt-6">
         <div className="flex items-center space-x-2">
           <Checkbox id="main" name="main" defaultChecked={account?.main} />
           <Label
@@ -147,10 +119,8 @@ export function AccountForm({ account, currencies, errors }: AccountFormArgs) {
           </Label>
         </div>
       </div>
-      <div className="mt-6">
-        <Button type="submit" className="w-full">
-          {account ? "Edit" : "Create"}
-        </Button>
+      <div className="mt-8">
+        <Button type="submit">Save</Button>
       </div>
     </Form>
   );

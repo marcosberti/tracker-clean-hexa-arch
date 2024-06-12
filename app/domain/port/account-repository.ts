@@ -18,7 +18,7 @@ export interface AccountRepositoryI {
       userId: AccountsE["userId"];
       main: boolean;
     },
-  ) => Promise<AccountsE>;
+  ) => Prisma.PrismaPromise<AccountsE>;
   updateAccount: (
     userId: AccountsE["userId"],
     id: AccountsE["id"],
@@ -28,9 +28,9 @@ export interface AccountRepositoryI {
         main?: boolean;
       }
     >,
-  ) => Promise<AccountsE>;
+  ) => Prisma.PrismaPromise<AccountsE>;
   deleteAccount: (
     userId: AccountsE["userId"],
     id: AccountsE["id"],
-  ) => Promise<AccountsE>;
+  ) => Prisma.PrismaPromise<AccountsE>;
 }

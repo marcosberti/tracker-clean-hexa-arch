@@ -4,50 +4,116 @@ import {
   defer,
   json,
 } from "@remix-run/node";
-import { Await, Outlet, useActionData, useLoaderData } from "@remix-run/react";
+import {
+  Await,
+  Link,
+  Outlet,
+  useActionData,
+  useLoaderData,
+  useSubmit,
+} from "@remix-run/react";
+import { PlusCircle } from "lucide-react";
+import { Suspense, useState } from "react";
 import invariant from "tiny-invariant";
 
 import { getAccountById } from "~/application/accounts";
-import { getInstallmentsByAccount } from "~/application/installment";
-import { getScheduledByAccount } from "~/application/scheduled";
+import {
+  deleteInstallment,
+  getInstallmentsByAccount,
+  getPendingInstallmentsByAccount,
+} from "~/application/installment";
+import {
+  deleteScheduled,
+  getPendingScheduledByAccount,
+  getScheduledByAccount,
+} from "~/application/scheduled";
 import { requireUserId } from "~/application/session";
 import {
   deleteTransaction,
   getTransactionSummarizedByType,
   getTransactionsByAccount,
+  payInstallment,
+  paySchedule,
 } from "~/application/transactions";
-import { Breadcrumb, BalanceCard } from "~/presentation/components";
+import { BalanceCard } from "~/presentation/components";
+import {
+  Card,
+  CardContent,
+  CardTitle,
+  CardHeader,
+} from "~/presentation/components/ui/card";
+import {
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+} from "~/presentation/components/ui/tabs";
 import { useActionToast } from "~/presentation/hooks";
 import { getMonthDefaultValue } from "~/presentation/utils";
 
-import { ExpensesCarousel } from "./components/expense-carousel";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
+
+import { Expenses } from "./components/expenses";
+import { PendingPayments } from "./components/pending-payments";
 import { Transactions } from "./components/transactions";
 
 export const ITEMS_PER_PAGE = 12;
 
-type Actions = "delete";
-type Entity = "transaction";
+type Intent =
+  | "delete-transaction"
+  | "delete-scheduled"
+  | "delete-installment"
+  | "pay-scheduled"
+  | "pay-installment";
 
 export async function action({ request, params }: ActionFunctionArgs) {
-  invariant(params.id, "account id missing in params");
+  const accountId = params.id;
+  invariant(typeof accountId === "string", "account id missing in params");
 
-  const { id } = params;
   const userId = await requireUserId(request);
 
   const formData = await request.formData();
-  const intent = formData.get("intent") as string;
-  const [action, entity] = intent.split("-") as [Actions, Entity];
+  const intent = formData.get("intent") as Intent;
 
   let errors;
   let message;
 
-  if (action === "delete" && entity === "transaction") {
+  if (intent === "delete-transaction") {
     const transaction = formData.get("transaction");
     invariant(typeof transaction === "string", "missing transaction");
 
-    const result = await deleteTransaction(userId, id, transaction);
+    const result = await deleteTransaction(userId, accountId, transaction);
     errors = result.errors;
     message = !errors ? "Transaction deleted" : null;
+  } else if (intent === "delete-scheduled") {
+    const scheduled = formData.get("scheduled");
+    invariant(typeof scheduled === "string", "missing scheduled");
+
+    const result = await deleteScheduled(userId, accountId, scheduled);
+    errors = result.errors;
+    message = !errors ? "Scheduled deleted" : null;
+  } else if (intent === "delete-installment") {
+    const installment = formData.get("installment");
+    invariant(typeof installment === "string", "missing installment");
+
+    const result = await deleteInstallment(userId, accountId, installment);
+    errors = result.errors;
+    message = !errors ? "Installment deleted" : null;
+  } else if (intent === "pay-scheduled") {
+    const scheduled = formData.get("scheduled");
+    invariant(typeof scheduled === "string", "missing scheduled");
+
+    const result = await paySchedule(userId, accountId, scheduled);
+    errors = result.errors;
+    message = !errors ? "Transaction created" : null;
+  } else if (intent === "pay-installment") {
+    const installment = formData.get("installment");
+    invariant(typeof installment === "string", "missing installment");
+
+    const result = await payInstallment(userId, accountId, installment);
+    errors = result.errors;
+    message = !errors ? "Transaction created" : null;
   }
 
   return json({ intent, message, errors }, { status: errors ? 400 : 200 });
@@ -81,86 +147,144 @@ export async function loader({ request, params }: LoaderFunctionArgs) {
     ITEMS_PER_PAGE,
     month,
   );
+  const pendingScheduled = getPendingScheduledByAccount(
+    userId,
+    account.id,
+    month,
+  );
+  const pendingInstallments = getPendingInstallmentsByAccount(
+    userId,
+    account.id,
+    month,
+  );
+
   const monthData = getTransactionSummarizedByType(userId, account.id, month);
 
-  const items = [{ label: "Home", link: "/" }, { label: account.name }];
-
   return defer({
-    account,
-    month,
     page,
-    items,
-    transactions,
+    month,
+    account,
     monthData,
+    transactions,
+    pending: Promise.all([pendingScheduled, pendingInstallments]),
     expenses: Promise.all([scheduled, installments]),
   });
 }
 
+function getIsInCurrentMonth(month: string) {
+  const currentMonth = new Date().toISOString().slice(0, 7);
+
+  return month === currentMonth;
+}
+
 export default function Account() {
-  const { account, month, page, items, transactions, expenses, monthData } =
+  const { account, month, page, transactions, expenses, monthData, pending } =
     useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   useActionToast(actionData);
+  const submit = useSubmit();
+  const [currentTab, setCurrentTab] = useState<
+    "transactions" | "pendingPayments"
+  >("transactions");
+
+  function handleValueChange(val: string) {
+    setCurrentTab(val as "transactions" | "pendingPayments");
+  }
+
+  const isInCurrentMonth = getIsInCurrentMonth(month);
 
   return (
-    <div className="h-full">
-      <div className="mb-8 h-10 flex items-center">
-        <Breadcrumb items={items} />
-      </div>
-      <div className="flex gap-8 mb-4">
+    <main className="p-4 sm:p-6">
+      <div className="flex gap-8">
         <Await resolve={monthData}>
           <BalanceCard account={account} />
         </Await>
         <Await resolve={expenses}>
-          <ExpensesCarousel currencyCode={account.currency.code} />
+          <Expenses currencyCode={account.currency.code} />
         </Await>
       </div>
-      <div className="h-[calc(100%-150px-3rem)] flex gap-4">
-        <div className="basis-[60%] lg:basis-[50%]">
-          <Await resolve={transactions}>
-            <Transactions
-              month={month}
-              page={page}
-              currencyCode={account.currency.code}
-            />
-          </Await>
+      <div className="grid gap-4 mt-8 md:gap-8 lg:grid-cols-2 xl:grid-cols-3">
+        <div className="xl:col-span-2">
+          <Tabs value={currentTab} onValueChange={handleValueChange}>
+            <div className="flex items-center">
+              <TabsList>
+                <TabsTrigger value="transactions">Transactions</TabsTrigger>
+                <TabsTrigger
+                  value="pendingPayments"
+                  disabled={!isInCurrentMonth}
+                >
+                  Pending payments
+                </TabsTrigger>
+              </TabsList>
+            </div>
+            <TabsContent value="transactions">
+              <Card className="bg-background">
+                <CardHeader className="px-7">
+                  <div className="flex items-center justify-between">
+                    <CardTitle>Transactions</CardTitle>
+                    <div className="flex items-center gap-2">
+                      <Input
+                        type="month"
+                        value={month}
+                        className="dark:[color-scheme:dark]"
+                        onChange={(e) => {
+                          submit(
+                            { page: 1, month: e.currentTarget.value },
+                            { method: "get" },
+                          );
+                        }}
+                      />
+                      <Button asChild disabled={!isInCurrentMonth}>
+                        <Link
+                          to={{
+                            pathname: `create/transaction`,
+                            search: `?page=${page}&month=${month}`,
+                          }}
+                          className={
+                            isInCurrentMonth
+                              ? "pointer-events-auto"
+                              : "pointer-events-none opacity-50"
+                          }
+                        >
+                          <PlusCircle className="size-4" />
+                        </Link>
+                      </Button>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <Suspense fallback={null}>
+                    <Await resolve={transactions}>
+                      <Transactions
+                        month={month}
+                        page={page}
+                        currencyCode={account.currency.code}
+                      />
+                    </Await>
+                  </Suspense>
+                </CardContent>
+              </Card>
+            </TabsContent>
+            <TabsContent value="pendingPayments">
+              <Card className="bg-background">
+                <CardHeader className="px-7">
+                  <CardTitle>Pending payments</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Suspense fallback={null}>
+                    <Await resolve={pending}>
+                      <PendingPayments currencyCode={account.currency.code} />
+                    </Await>
+                  </Suspense>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
         </div>
-        <div className="basis-[40%] lg:basis-[50%]">
+        <div>
           <Outlet />
         </div>
       </div>
-    </div>
+    </main>
   );
 }
-
-// interface SchedItemArgs {
-//   currencyCode: string;
-// }
-
-// function SchedItem({ currencyCode }: SchedItemArgs) {
-//   return (
-//     <li className="w-full flex items-center justify-between px-4 py-2 border-b-2 opacity-70">
-//       <div className="flex items-center gap-2">
-//         <Building className="size-6" />
-//         <div className="flex flex-col">
-//           <span className="font-semibold">alquiler</span>
-//           <span className="text-xs">pending payment</span>
-//         </div>
-//       </div>
-//       <div className="flex items-center gap-2">
-//         <ArrowUp className="size-4 text-green-600" />
-//         <p className="font-bold">{formatAmount(123123, currencyCode)}</p>
-//         <DropdownMenu>
-//           <DropdownMenuTrigger>
-//             <MoreVerticalIcon className="size-4" />
-//           </DropdownMenuTrigger>
-//           <DropdownMenuContent>
-//             <DropdownMenuItem className="text-gray-600 flex gap-2 items-center">
-//               <Pencil className="size-4" /> <span>pay</span>
-//             </DropdownMenuItem>
-//           </DropdownMenuContent>
-//         </DropdownMenu>
-//       </div>
-//     </li>
-//   );
-// }

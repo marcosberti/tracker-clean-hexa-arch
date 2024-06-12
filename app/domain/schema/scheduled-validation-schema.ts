@@ -25,8 +25,12 @@ export const ScheduledSchema = z.object({
     .string()
     .min(10, "from date is required")
     .transform((date) => new Date(date).toISOString()),
-  to: z
-    .string()
-    .min(10, "from date is required")
-    .transform((date) => new Date(date).toISOString()),
+  to: z.nullable(
+    z
+      .string()
+      // .min(10, "to date is required")
+      .optional()
+      .transform((date) => (date ? new Date(date).toISOString() : null))
+      .or(z.literal(null)),
+  ),
 });

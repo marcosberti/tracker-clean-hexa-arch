@@ -1,14 +1,18 @@
 import { z } from "zod";
 
 export const TransactionSchema = z.object({
-  currencyId: z.string().min(1, { message: "currencyId is required" }),
-  categoryId: z.string().min(1, { message: "categoryId is required" }),
+  currencyId: z.string().min(1, { message: "currency is required" }),
+  categoryId: z.string().min(1, { message: "category is required" }),
   type: z.enum(["income", "spent"]),
+  createdAt: z
+    .string()
+    .min(1, { message: "date is required" })
+    .transform((v) => `${v}T00:00:00z`),
   title: z
     .string({
       required_error: "title is required",
     })
-    .min(6, { message: "title is too short" }),
+    .min(4, { message: "title is too short" }),
   amount: z
     .number({
       required_error: "amount is required",

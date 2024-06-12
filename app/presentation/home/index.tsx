@@ -9,23 +9,26 @@ import { Await, useActionData, useLoaderData } from "@remix-run/react";
 import invariant from "tiny-invariant";
 
 import { deleteAccount, getAccounts } from "~/application/accounts";
-import { getCategories } from "~/application/categories";
 import { deleteCategory } from "~/application/categories/delete-category";
 import { requireUserId } from "~/application/session";
 import {
+  getMonthlySummarizedByType,
   getTransactionSummarizedByType,
   getTransactionsByAccount,
 } from "~/application/transactions";
 import { BalanceCard } from "~/presentation/components";
+import AccountCard from "~/presentation/components/account-card";
+import {
+  ScrollArea,
+  ScrollBar,
+} from "~/presentation/components/ui/scroll-area";
 import { useActionToast } from "~/presentation/hooks";
 import { getMonthDefaultValue } from "~/presentation/utils";
 
-import AccountsCarousel from "./components/accounts-carousel";
-import Categories from "./components/categories";
 import MonthlyChart from "./components/monthly-chart";
 import RecentActivity from "./components/recent-activity";
 
-export const meta: MetaFunction = () => [{ title: "Remix Notes" }];
+export const meta: MetaFunction = () => [{ title: "Tracker" }];
 
 type Actions = "delete";
 type Entity = "category" | "account";
@@ -67,67 +70,66 @@ const TAKE = 9;
 export async function loader({ request }: LoaderFunctionArgs) {
   const userId = await requireUserId(request);
   const accounts = await getAccounts(userId);
-  const categories = getCategories(userId);
 
   const account = accounts?.find((a) => a.main);
 
-  // TODO: send month in params
-  const url = new URL(request.url);
-  let month = url.searchParams.get("month") as string;
-
-  if (!month) {
-    month = getMonthDefaultValue();
-  }
+  const month = getMonthDefaultValue();
 
   const transactions = account
     ? getTransactionsByAccount(userId, account.id, PAGE, TAKE, month)
     : Promise.resolve([]);
 
   const monthData = account
-    ? await getTransactionSummarizedByType(userId, account.id, month)
+    ? getTransactionSummarizedByType(userId, account.id, month)
     : Promise.resolve({ income: 0, spent: 0 });
+
+  const monthlyData = account
+    ? getMonthlySummarizedByType(userId, account.id)
+    : Promise.resolve([]);
 
   return defer({
     accounts: accounts ?? [],
-    categories,
     transactions,
     account,
     monthData,
+    monthlyData,
   });
 }
 
 export default function Index() {
-  const { accounts, account, categories, transactions, monthData } =
+  const { accounts, account, transactions, monthData, monthlyData } =
     useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   useActionToast(actionData);
 
   return (
-    <>
-      <div className="flex align-top mb-8">
-        <h1 className="text-4xl font-bold">Overview</h1>
-      </div>
-      <div className="flex gap-8">
-        <Await resolve={monthData}>
-          <BalanceCard account={account} />
-        </Await>
-        <AccountsCarousel accounts={accounts} />
-      </div>
-      <div className="flex gap-8 pt-8 flex-col md:flex-row">
-        <div className="hidden lg:block lg:w-[65%] 2xl:w-[50%]">
-          <MonthlyChart />
+    <ScrollArea className="h-[calc(100vh-4.5rem-2rem)] sm:h-[calc(100vh-4.5rem-3rem)]">
+      <main className="flex flex-1 flex-col gap-4 p-4 sm:gap-8 sm:p-6">
+        <div className="flex flex-col sm:flex-row gap-8">
+          <div>
+            <Await resolve={monthData}>
+              <BalanceCard account={account} />
+            </Await>
+          </div>
+          <ScrollArea className="w-full whitespace-nowrap">
+            <div className="flex w-max space-x-4">
+              {accounts.map((a) => (
+                <AccountCard key={a.id} account={a} />
+              ))}
+            </div>
+            <ScrollBar orientation="horizontal" />
+          </ScrollArea>
         </div>
-        <div className="w-full md:w-[50%] lg:w-[35%] 2xl:w-[25%]">
+        <div className="grid gap-4 md:gap-8 lg:grid-cols-2 xl:grid-cols-3">
+          <Await resolve={monthlyData}>
+            <MonthlyChart currencyCode={account?.currency.code} />
+          </Await>
           <Await resolve={transactions}>
             <RecentActivity account={account} />
           </Await>
         </div>
-        <div className="w-full md:w-[50%] lg:hidden 2xl:block 2xl:w-[25%]">
-          <Await resolve={categories}>
-            <Categories />
-          </Await>
-        </div>
-      </div>
-    </>
+      </main>
+      <ScrollBar />
+    </ScrollArea>
   );
 }

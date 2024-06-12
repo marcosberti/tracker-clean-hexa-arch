@@ -57,16 +57,8 @@ export function AccountRepository(): AccountRepositoryI {
     });
   }
 
-  async function deleteAccount(
-    userId: AccountsE["userId"],
-    id: AccountsE["id"],
-  ) {
-    const account = await prisma.accounts.findFirst({ where: { id, userId } });
-    if (!account) {
-      return Promise.reject("Account not found");
-    }
-
-    return prisma.accounts.delete({ where: { id } });
+  function deleteAccount(userId: AccountsE["userId"], id: AccountsE["id"]) {
+    return prisma.accounts.delete({ where: { userId, id } });
   }
 
   return {

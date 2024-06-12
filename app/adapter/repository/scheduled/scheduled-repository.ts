@@ -12,13 +12,16 @@ export function ScheduledRepository(): ScheduledRepositoryI {
     id: ScheduledE["id"],
     select: T,
   ) {
+    const where = {
+      userId,
+      accountId,
+      id,
+      active: true,
+    };
+
     return prisma.scheduled.findFirst({
       select,
-      where: {
-        userId,
-        accountId,
-        id,
-      },
+      where,
     });
   }
 
@@ -39,6 +42,33 @@ export function ScheduledRepository(): ScheduledRepositoryI {
     });
   }
 
+  function getPendingScheduledByAccount<T extends Prisma.ScheduledSelect>(
+    userId: ScheduledE["userId"],
+    accountId: ScheduledE["accountId"],
+    select: T,
+    from: string,
+    to: string,
+  ) {
+    const where = {
+      userId,
+      accountId,
+      active: true,
+      transactions: {
+        none: {
+          createdAt: {
+            gte: from,
+            lte: to,
+          },
+        },
+      },
+    };
+
+    return prisma.scheduled.findMany({
+      select,
+      where,
+    });
+  }
+
   function createScheduled(
     data: typeof ScheduledSchema._type & {
       userId: ScheduledE["userId"];
@@ -50,14 +80,46 @@ export function ScheduledRepository(): ScheduledRepositoryI {
     });
   }
 
-  function deleteScheduled() {
-    //
+  function updateScheduled(
+    userId: ScheduledE["userId"],
+    accountId: ScheduledE["accountId"],
+    id: ScheduledE["id"],
+    data: Partial<typeof ScheduledSchema._type>,
+  ) {
+    const where = {
+      userId,
+      accountId,
+      id,
+    };
+
+    return prisma.scheduled.update({
+      data,
+      where,
+    });
+  }
+
+  function deleteScheduled(
+    userId: ScheduledE["userId"],
+    accountId: ScheduledE["accountId"],
+    id: ScheduledE["id"],
+  ) {
+    const where = {
+      userId,
+      accountId,
+      id,
+    };
+
+    return prisma.scheduled.delete({
+      where,
+    });
   }
 
   return {
     getScheduledByAccount,
     getScheduledById,
+    getPendingScheduledByAccount,
     createScheduled,
+    updateScheduled,
     deleteScheduled,
   };
 }

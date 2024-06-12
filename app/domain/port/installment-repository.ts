@@ -15,11 +15,33 @@ export interface InstallmentRepositoryI {
     accountId: InstallmentsE["accountId"],
     select: T,
   ) => Promise<Prisma.InstallmentsGetPayload<{ select: T }>[] | null>;
+  getPendingInstallmentsByAccount: <T extends Prisma.InstallmentsSelect>(
+    userId: InstallmentsE["userId"],
+    accountId: InstallmentsE["accountId"],
+    select: T,
+    from: string,
+    to: string,
+  ) => Promise<Prisma.InstallmentsGetPayload<{ select: T }>[] | null>;
   createInstallment: (
     data: typeof InstallmentSchema._type & {
       userId: InstallmentsE["userId"];
       accountId: InstallmentsE["accountId"];
     },
-  ) => Promise<InstallmentsE>;
-  deleteInstallment: () => void;
+  ) => Prisma.PrismaPromise<InstallmentsE>;
+  updateInstallment: (
+    userId: InstallmentsE["userId"],
+    accountId: InstallmentsE["accountId"],
+    id: InstallmentsE["id"],
+    data: Partial<
+      typeof InstallmentSchema._type & {
+        paidInstallments: number;
+        active: boolean;
+      }
+    >,
+  ) => Prisma.PrismaPromise<InstallmentsE>;
+  deleteInstallment: (
+    userId: InstallmentsE["userId"],
+    accountId: InstallmentsE["accountId"],
+    id: InstallmentsE["id"],
+  ) => Prisma.PrismaPromise<InstallmentsE>;
 }

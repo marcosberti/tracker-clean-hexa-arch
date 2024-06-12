@@ -5,8 +5,8 @@ import { CurrencySchema } from "../schema";
 
 export interface CurrencyRepositoryI {
   getCurrencyById: <T extends Prisma.CurrenciesSelect>(
-    id: CurrenciesE["id"],
     userId: CurrenciesE["userId"],
+    id: CurrenciesE["id"],
     select: T,
   ) => Promise<Prisma.CurrenciesGetPayload<{ select: T }> | null>;
   getCurrencies: <T extends Prisma.CurrenciesSelect>(
@@ -18,15 +18,11 @@ export interface CurrencyRepositoryI {
       userId: CurrenciesE["userId"];
     },
   ) => Promise<CurrenciesE>;
-  // updateAccount: (
-  //   id: AccountsE["id"],
-  //   name: AccountsE["name"],
-  //   color: AccountsE["color"],
-  //   icon: AccountsE["icon"],
-  //   main: AccountsE["main"],
-  //   userId: AccountsE["userId"],
-  //   currencyId: AccountsE["currencyId"],
-  // ) => Promise<AccountsE>;
+  updateCurrency: (
+    userId: CurrenciesE["userId"],
+    id: CurrenciesE["id"],
+    data: typeof CurrencySchema._type,
+  ) => Prisma.PrismaPromise<CurrenciesE>;
   deleteCurrency: (
     userId: CurrenciesE["userId"],
     id: CurrenciesE["id"],

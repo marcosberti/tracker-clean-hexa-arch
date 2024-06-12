@@ -10,13 +10,16 @@ const SELECT = {
   amount: true,
   type: true,
   createdAt: true,
-  category: { select: { color: true, icon: true } },
+  scheduledId: true,
+  installmentId: true,
+  category: { select: { name: true, color: true, icon: true } },
 };
 
 export type TransactionsSelect = {
   [Property in keyof Omit<typeof SELECT, "category">]: string;
 } & {
   category: {
+    name: string;
     color: string;
     icon: string;
   };

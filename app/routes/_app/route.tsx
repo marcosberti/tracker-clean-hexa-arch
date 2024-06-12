@@ -1,4 +1,4 @@
-import Index, { meta, loader } from "~/presentation/layout";
+import Index, { meta, loader, shouldRevalidate } from "~/presentation/layout";
 
-export { meta, loader };
+export { meta, loader, shouldRevalidate };
 export default Index;

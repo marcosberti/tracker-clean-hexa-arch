@@ -3,6 +3,21 @@ import bcrypt from "bcryptjs";
 
 const prisma = new PrismaClient();
 
+const CURRENCIES = [
+  {
+    name: "Pesos",
+    code: "ARS",
+  },
+  {
+    name: "Dollars",
+    code: "USD",
+  },
+  {
+    name: "Bitcoin",
+    code: "BTC",
+  },
+];
+
 const CATEGORIES = [
   {
     name: "Household",
@@ -19,14 +34,40 @@ const CATEGORIES = [
     color: "green",
     icon: "Banknote",
   },
+  {
+    name: "Groceries",
+    color: "green",
+    icon: "ShoppingBasket",
+  },
+];
+
+const ACCOUNTS = [
+  {
+    name: "BBVA",
+    main: true,
+    balance: 0,
+    color: "lime",
+    icon: "Banknote",
+  },
+  {
+    name: "Wise",
+    main: false,
+    balance: 0,
+    color: "lime",
+    icon: "Wallet",
+  },
 ];
 
 async function seed() {
   const email = "bertilotti.marcos@gmail.com";
 
-  await prisma.users.deleteMany().catch(() => {
-    // no worries if it doesn't exist yet
-  });
+  await prisma.transactions.deleteMany();
+  await prisma.scheduled.deleteMany();
+  await prisma.installments.deleteMany();
+  await prisma.categories.deleteMany();
+  await prisma.accounts.deleteMany();
+  await prisma.currencies.deleteMany();
+  await prisma.users.deleteMany();
 
   const hashedPassword = await bcrypt.hash("020993mb", 10);
 
@@ -45,19 +86,18 @@ async function seed() {
     // no worries if it doesn't exist yet
   });
 
-  const currency = await prisma.currencies.create({
-    data: {
-      userId: user.id,
-      code: "ARS",
-      name: "Pesos",
-    },
+  const currenciesP = CURRENCIES.map((currency) => {
+    return prisma.currencies.create({
+      data: {
+        userId: user.id,
+        ...currency,
+      },
+    });
   });
 
-  await prisma.categories.deleteMany().catch(() => {
-    // no worries if it doesn't exist yet
-  });
+  const currencies = await Promise.all(currenciesP);
 
-  const promises = CATEGORIES.map((category) => {
+  const categoriesP = CATEGORIES.map((category) => {
     return prisma.categories.create({
       data: {
         userId: user.id,
@@ -66,22 +106,21 @@ async function seed() {
     });
   });
 
-  await Promise.all(promises);
+  await Promise.all(categoriesP);
 
-  await prisma.accounts.deleteMany().catch(() => {
-    // no worries if it doesn't exist yet
+  const currency = currencies.find((c) => c.code === "ARS");
+
+  const accountsP = ACCOUNTS.map((account) => {
+    return prisma.accounts.create({
+      data: {
+        userId: user.id,
+        currencyId: currency!.id,
+        ...account,
+      },
+    });
   });
-  await prisma.accounts.create({
-    data: {
-      name: "BBVA",
-      main: true,
-      balance: 0,
-      color: "lime",
-      icon: "Banknote",
-      currencyId: currency.id,
-      userId: user.id,
-    },
-  });
+
+  await Promise.all(accountsP);
 
   console.log(`Database has been seeded. 🌱`);
 }

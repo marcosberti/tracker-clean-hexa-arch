@@ -14,15 +14,13 @@ export function useActionToast(data: ActionToastArgs | undefined) {
   useEffect(() => {
     if (!data) return;
 
-    const { intent, message, errors } = data;
+    const { message, errors } = data;
 
-    if (intent.startsWith("delete")) {
-      toast({
-        title: errors ? "Oops! Something went wrong." : undefined,
-        description: errors ?? message,
-        variant: errors ? "destructive" : "success",
-      });
-    }
+    toast({
+      title: errors ? "Oops! Something went wrong." : undefined,
+      description: errors ?? message,
+      variant: errors ? "destructive" : "success",
+    });
   }, [data, toast]);
 
   return null;

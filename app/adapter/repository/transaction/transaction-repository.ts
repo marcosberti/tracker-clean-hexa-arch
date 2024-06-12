@@ -5,6 +5,21 @@ import { TransactionsE } from "~/domain/entity";
 import { TransactionRepositoryI } from "~/domain/port";
 import { TransactionSchema } from "~/domain/schema";
 
+const MONTHS = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
+
 export function TransactionRepository(): TransactionRepositoryI {
   async function getTransactionById<T extends Prisma.TransactionsSelect>(
     userId: TransactionsE["userId"],
@@ -74,8 +89,10 @@ export function TransactionRepository(): TransactionRepositoryI {
 
     const income = data.find((d) => d.type === "income")?._sum.amount ?? 0;
     const spent = data.find((d) => d.type === "spent")?._sum.amount ?? 0;
+    const month = Number(from.slice(5, 7)) - 1;
 
     return {
+      month: MONTHS[month],
       income: Number(income),
       spent: Number(spent),
     };
@@ -92,18 +109,30 @@ export function TransactionRepository(): TransactionRepositoryI {
     });
   }
 
-  async function deleteTransaction(
+  function updateTransaction(
+    userId: TransactionsE["userId"],
+    accountId: TransactionsE["accountId"],
+    id: TransactionsE["id"],
+    data: Partial<
+      typeof TransactionSchema._type & {
+        userId: TransactionsE["userId"];
+        accountId: TransactionsE["accountId"];
+      }
+    >,
+  ) {
+    const where = {
+      userId,
+      accountId,
+      id,
+    };
+    return prisma.transactions.update({ data, where });
+  }
+
+  function deleteTransaction(
     userId: TransactionsE["userId"],
     accountId: TransactionsE["accountId"],
     id: TransactionsE["id"],
   ) {
-    const transaction = await getTransactionById(userId, accountId, id, {
-      id: true,
-    });
-    if (!transaction) {
-      throw new Error("could not find the transaction");
-    }
-
     return prisma.transactions.delete({ where: { userId, accountId, id } });
   }
 
@@ -112,6 +141,7 @@ export function TransactionRepository(): TransactionRepositoryI {
     getTransactionById,
     getTransactionSummarizedByType,
     createTransaction,
+    updateTransaction,
     deleteTransaction,
   };
 }

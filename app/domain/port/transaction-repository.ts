@@ -30,10 +30,21 @@ export interface TransactionRepositoryI {
       userId: TransactionsE["userId"];
       accountId: TransactionsE["accountId"];
     },
-  ) => Promise<TransactionsE>;
+  ) => Prisma.PrismaPromise<TransactionsE>;
+  updateTransaction: (
+    userId: TransactionsE["userId"],
+    accountId: TransactionsE["accountId"],
+    id: TransactionsE["id"],
+    data: Partial<
+      typeof TransactionSchema._type & {
+        userId: TransactionsE["userId"];
+        accountId: TransactionsE["accountId"];
+      }
+    >,
+  ) => Prisma.PrismaPromise<TransactionsE>;
   deleteTransaction: (
     userId: TransactionsE["userId"],
     accountId: TransactionsE["accountId"],
     id: TransactionsE["id"],
-  ) => Promise<TransactionsE>;
+  ) => Prisma.PrismaPromise<TransactionsE>;
 }

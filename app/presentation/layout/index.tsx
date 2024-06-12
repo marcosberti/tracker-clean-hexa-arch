@@ -1,24 +1,40 @@
-import { LoaderFunctionArgs, MetaFunction } from "@remix-run/node";
-import { Outlet } from "@remix-run/react";
+import { LoaderFunctionArgs, MetaFunction, json } from "@remix-run/node";
+import { Outlet, useLoaderData } from "@remix-run/react";
 
+import { getAccountById } from "~/application/accounts";
 import { requireUserId } from "~/application/session";
 
+import Header from "./components/header";
 import Navbar from "./components/navbar";
 
-export const meta: MetaFunction = () => [{ title: "Remix Notes" }];
+export const meta: MetaFunction = () => [{ title: "Tracker" }];
 
-export async function loader({ request }: LoaderFunctionArgs) {
-  await requireUserId(request);
-  return null;
+export const shouldRevalidate = () => {
+  return true;
+};
+
+export async function loader({ request, params }: LoaderFunctionArgs) {
+  const userId = await requireUserId(request);
+  const url = new URL(request.url);
+
+  let account;
+  if (url.pathname.startsWith("/account/") && params.id) {
+    account = await getAccountById(userId, params.id);
+  }
+
+  return json({ account });
 }
 
 export default function Index() {
+  const { account } = useLoaderData<typeof loader>();
+
   return (
-    <main className="relative min-h-screen bg-white flex text-gray-600">
+    <div className="relative min-h-screen bg-muted/40 flex">
       <Navbar />
-      <div className="py-10 px-8 w-full max-w-[calc(100vw-128px)]">
+      <section className="flex flex-col w-full sm:pl-[3rem] sm:gap-4 lg:pl-[5rem]">
+        <Header account={account} />
         <Outlet />
-      </div>
-    </main>
+      </section>
+    </div>
   );
 }

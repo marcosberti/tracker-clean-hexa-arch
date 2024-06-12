@@ -37,6 +37,20 @@ export function CategoryRepository(): CategoryRepositoryI {
     });
   }
 
+  function updateCategory(
+    userId: CategoriesE["userId"],
+    id: CategoriesE["id"],
+    data: typeof CategorySchema._type,
+  ) {
+    return prisma.categories.update({
+      data,
+      where: {
+        id,
+        userId,
+      },
+    });
+  }
+
   async function deleteCategory(
     userId: CategoriesE["userId"],
     id: CategoriesE["id"],
@@ -59,5 +73,11 @@ export function CategoryRepository(): CategoryRepositoryI {
     return prisma.categories.delete({ where: { id } });
   }
 
-  return { getCategoryById, getCategories, createCategory, deleteCategory };
+  return {
+    getCategoryById,
+    getCategories,
+    createCategory,
+    updateCategory,
+    deleteCategory,
+  };
 }

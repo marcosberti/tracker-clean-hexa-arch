@@ -1,69 +1,77 @@
 import { Link, useLocation } from "@remix-run/react";
-import { Banknote, BarChart2, Settings } from "lucide-react";
+import { Home, Settings, Wallet } from "lucide-react";
 
-const ROUTES = [
-  { path: "/", icon: BarChart2, title: "Dashboard" },
-  // {
-  //   path: "/accounts",
-  //   icon: Banknote,
-  //   title: "Accounts",
-  // },
-  {
-    path: "/settings",
-    icon: Settings,
-    title: "settings",
-  },
-];
-
-function Routes() {
-  const location = useLocation();
-
-  return (
-    <div className="w-full flex flex-col gap-2 items-center">
-      {ROUTES.map(({ path, title, icon: Icon }) => (
-        <div
-          key={path}
-          data-active={
-            path === location.pathname ||
-            (location.pathname.startsWith(path) && path !== "/") ||
-            undefined
-          }
-          className="data-[active]:bg-green-100 data-[active]:text-gray-800 group rounded-lg relative w-[50px] h-[50px] text-gray-500 transition-all duration-300 hover:text-green-700"
-        >
-          <Link
-            title={title}
-            to={path}
-            className="flex w-full h-full items-center justify-center py-3"
-          >
-            <Icon className="group-active:translate-y-[1px]" />
-          </Link>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-function Logo() {
-  return (
-    <div className="w-full flex justify-center">
-      <Link to="/">
-        <div className="relative h-10 w-10 lg:h-16 lg:w-16 rounded-2xl bg-gradient-to-br from-green-300">
-          <div className="absolute top-[50%] left-[50%] -translate-x-[55%] -translate-y-[55%] select-none text-3xl lg:text-5xl font-bold text-gray-700">
-            <span>t</span>
-          </div>
-        </div>
-      </Link>
-    </div>
-  );
-}
+import Logo from "~/presentation/components/logo";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "~/presentation/components/ui/tooltip";
+import { cn } from "~/presentation/utils";
 
 export default function Navbar() {
+  const location = useLocation();
+
+  const isHomeActive = "/" === location.pathname;
+  const isAccountsActive = location.pathname.startsWith("/account");
+  const isSettingsActive = "/settings" === location.pathname;
+
   return (
-    <nav className="basis-[100px] min-h-screen py-10 px-8 flex flex-col items-center">
-      <Logo />
-      <div className="w-[35%] h-[4px] bg-gray-400 my-8 rounded-lg" />
-      <Routes />
-      <div className="mt-auto">user</div>
-    </nav>
+    <aside className="fixed inset-y-0 left-0 z-10 hidden flex-col border-r bg-background sm:flex">
+      <nav className="flex flex-col items-center gap-4 px-2 sm:py-4 lg:px-3">
+        <Link
+          to="/"
+          className="group relative flex h-10 w-10 rounded-lg lg:h-14 lg:w-14 lg:rounded-2xl shrink-0 items-center justify-center gap-2 bg-gradient-to-br from-green-300 to-neutral-100 text-lg font-semibold text-primary-foreground sm:h-8 sm:w-8 sm:text-base"
+        >
+          <Logo />
+        </Link>
+        <div className="w-[35%] h-[4px] bg-gray-400 my-8 rounded-lg" />
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Link
+              to="/"
+              className={cn(
+                "flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-foreground sm:h-8 sm:w-8",
+                isHomeActive && "bg-accent text-accent-foreground",
+              )}
+            >
+              <Home className="h-5 w-5" />
+              <span className="sr-only">Dashboard</span>
+            </Link>
+          </TooltipTrigger>
+          <TooltipContent side="right">Dashboard</TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Link
+              to="/accounts"
+              className={cn(
+                "flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-foreground sm:h-8 sm:w-8",
+                isAccountsActive && "bg-accent text-accent-foreground",
+              )}
+            >
+              <Wallet className="h-5 w-5" />
+              <span className="sr-only">Accounts</span>
+            </Link>
+          </TooltipTrigger>
+          <TooltipContent side="right">Accounts</TooltipContent>
+        </Tooltip>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Link
+              to="/settings"
+              className={cn(
+                "flex h-9 w-9 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:text-foreground sm:h-8 sm:w-8",
+                isSettingsActive && "bg-accent text-accent-foreground",
+              )}
+            >
+              <Settings className="h-5 w-5" />
+              <span className="sr-only">Settings</span>
+            </Link>
+          </TooltipTrigger>
+          <TooltipContent side="right">Settings</TooltipContent>
+        </Tooltip>
+      </nav>
+    </aside>
   );
 }
