@@ -20,9 +20,10 @@ export async function verifyPassword(formData: FormData) {
       errors: {
         email: "Invalid email or password",
         password: null,
+        code: "INVALID_CREDENTIALS",
       } as unknown as {
         [Property in keyof typeof UserSchema._type]: string;
-      },
+      } & { code: string },
     };
   }
 

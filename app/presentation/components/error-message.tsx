@@ -1,7 +1,7 @@
 import { cn } from "~/presentation/utils";
 
 interface ErrorMessageArgs {
-  message: [string] | undefined;
+  message: string | [string] | undefined;
 }
 
 export function ErrorMessage({ message }: ErrorMessageArgs) {

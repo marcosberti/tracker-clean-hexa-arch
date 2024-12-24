@@ -30,7 +30,7 @@ export async function createTransaction(
   }
 
   const amount = data.type === "spent" ? data.amount * -1 : data.amount;
-  const balance = Number(account.balance) + amount;
+  const balance = String(+account.balance + amount);
 
   const [transaction] = await prisma.$transaction([
     Repository.transaction.createTransaction({

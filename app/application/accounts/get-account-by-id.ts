@@ -1,3 +1,4 @@
+import { Prisma } from "@prisma/client";
 import { Repository } from "~/adapter/repository";
 import { AccountsE } from "~/domain/entity";
 
@@ -27,17 +28,25 @@ export type AccountByIdSelect = {
   };
 };
 
+type Error = {
+  errors: string;
+  code: "ACCOUNT_NOT_FOUND";
+};
+
 export async function getAccountById(
   userId: AccountsE["id"],
   accountId: AccountsE["id"],
-) {
+): Promise<Prisma.AccountsGetPayload<{ select: typeof SELECT }> | Error> {
   const account = await Repository.account.getAccountById(
     userId,
     accountId,
     SELECT,
   );
   if (!account) {
-    throw new Error("Account not found.");
+    return {
+      errors: "Account not found",
+      code: "ACCOUNT_NOT_FOUND",
+    };
   }
 
   return account;

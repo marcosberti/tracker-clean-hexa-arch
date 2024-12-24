@@ -111,7 +111,7 @@ export default function Settings() {
             <TabsTrigger value="categories">Categories</TabsTrigger>
           </TabsList>
           <TabsContent value="currencies">
-            <Card className="bg-background">
+            <Card>
               <CardHeader className="px-7">
                 <div className="flex items-center justify-between">
                   <CardTitle>Currencies</CardTitle>
@@ -132,7 +132,7 @@ export default function Settings() {
             </Card>
           </TabsContent>
           <TabsContent value="categories">
-            <Card className="bg-background">
+            <Card>
               <CardHeader className="px-7">
                 <div className="flex items-center justify-between">
                   <CardTitle>Categories</CardTitle>

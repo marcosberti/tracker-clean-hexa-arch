@@ -29,7 +29,7 @@ export default function Index() {
   const { account } = useLoaderData<typeof loader>();
 
   return (
-    <div className="relative min-h-screen bg-muted/40 flex">
+    <div className="relative min-h-screen flex">
       <Navbar />
       <section className="flex flex-col w-full sm:pl-[3rem] sm:gap-4 lg:pl-[5rem]">
         <Header account={account} />

@@ -24,23 +24,19 @@ export default function RecentActivity({ account }: RecentActivityArgs) {
   const [_, transactions] = useAsyncValue() as [number, TransactionsSelect[]];
 
   return (
-    <Card className="bg-background">
+    <Card>
       <CardHeader className="flex flex-row items-center">
         <div className="grid gap-2">
           <CardTitle>Transactions</CardTitle>
           <CardDescription>Recent transactions.</CardDescription>
         </div>
-        <Button
-          asChild
-          size="sm"
-          className="ml-auto gap-1 bg-muted-foreground hover:bg-foreground"
-        >
+        <Button asChild size="sm" className="ml-auto gap-1  ">
           <Link
             to={`/account/${account?.id}`}
             aria-disabled={!account}
             className={clsx(!account && "pointer-events-none")}
           >
-            View All
+            See All
             <ArrowUpRight className="h-4 w-4" />
           </Link>
         </Button>

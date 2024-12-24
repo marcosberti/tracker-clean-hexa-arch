@@ -98,6 +98,40 @@ export function TransactionRepository(): TransactionRepositoryI {
     };
   }
 
+  async function getTransactionSummarizedByCategory(
+    userId: TransactionsE["userId"],
+    accountId: TransactionsE["accountId"],
+    from: string,
+    to: string,
+  ) {
+    const data = await prisma.transactions.groupBy({
+      by: ["categoryId"],
+      _sum: {
+        amount: true,
+      },
+      where: {
+        userId,
+        accountId,
+        createdAt: {
+          gte: from,
+          lte: to,
+        },
+      },
+    });
+
+    const month = Number(from.slice(5, 7)) - 1;
+    const d = data.reduce(
+      (acc, d) => {
+        acc[d.categoryId] = Number(d._sum.amount);
+
+        return acc;
+      },
+      { month: MONTHS[month] } as Record<string, number | string>,
+    );
+
+    return d;
+  }
+
   function createTransaction(
     data: typeof TransactionSchema._type & {
       userId: TransactionsE["userId"];
@@ -140,6 +174,7 @@ export function TransactionRepository(): TransactionRepositoryI {
     getTransactionsByAccount,
     getTransactionById,
     getTransactionSummarizedByType,
+    getTransactionSummarizedByCategory,
     createTransaction,
     updateTransaction,
     deleteTransaction,

@@ -12,6 +12,7 @@ import { deleteAccount, getAccounts } from "~/application/accounts";
 import { deleteCategory } from "~/application/categories/delete-category";
 import { requireUserId } from "~/application/session";
 import {
+  getMonthlySummarizedByCategory,
   getMonthlySummarizedByType,
   getTransactionSummarizedByType,
   getTransactionsByAccount,
@@ -25,6 +26,7 @@ import {
 import { useActionToast } from "~/presentation/hooks";
 import { getMonthDefaultValue } from "~/presentation/utils";
 
+import CategoriesChart from "./components/categories-chart";
 import MonthlyChart from "./components/monthly-chart";
 import RecentActivity from "./components/recent-activity";
 
@@ -87,31 +89,42 @@ export async function loader({ request }: LoaderFunctionArgs) {
     ? getMonthlySummarizedByType(userId, account.id)
     : Promise.resolve([]);
 
+  const monthlyCategoryData = account
+    ? getMonthlySummarizedByCategory(userId, account.id)
+    : Promise.resolve([]);
+
   return defer({
     accounts: accounts ?? [],
     transactions,
     account,
     monthData,
     monthlyData,
+    monthlyCategoryData,
   });
 }
 
 export default function Index() {
-  const { accounts, account, transactions, monthData, monthlyData } =
-    useLoaderData<typeof loader>();
+  const {
+    accounts,
+    account,
+    transactions,
+    monthData,
+    monthlyData,
+    monthlyCategoryData,
+  } = useLoaderData<typeof loader>();
   const actionData = useActionData<typeof action>();
   useActionToast(actionData);
 
   return (
     <ScrollArea className="h-[calc(100vh-4.5rem-2rem)] sm:h-[calc(100vh-4.5rem-3rem)]">
-      <main className="flex flex-1 flex-col gap-4 p-4 sm:gap-8 sm:p-6">
+      <main className="flex flex-1 flex-col gap-4 p-4 sm:gap-8 sm:p-6 h-full">
         <div className="flex flex-col sm:flex-row gap-8">
           <div>
             <Await resolve={monthData}>
               <BalanceCard account={account} />
             </Await>
           </div>
-          <ScrollArea className="w-full whitespace-nowrap">
+          <ScrollArea className="w-[calc(100dvw-2rem)] whitespace-nowrap">
             <div className="flex w-max space-x-4">
               {accounts.map((a) => (
                 <AccountCard key={a.id} account={a} />
@@ -120,10 +133,15 @@ export default function Index() {
             <ScrollBar orientation="horizontal" />
           </ScrollArea>
         </div>
-        <div className="grid gap-4 md:gap-8 lg:grid-cols-2 xl:grid-cols-3">
+        <div className="grid gap-4 md:gap-8 lg:grid-cols-2 lg:grid-rows-1 xl:grid-cols-4 h-full">
           <Await resolve={monthlyData}>
             <MonthlyChart currencyCode={account?.currency.code} />
           </Await>
+          <div className="hidden md:block">
+            <Await resolve={monthlyCategoryData}>
+              <CategoriesChart />
+            </Await>
+          </div>
           <Await resolve={transactions}>
             <RecentActivity account={account} />
           </Await>

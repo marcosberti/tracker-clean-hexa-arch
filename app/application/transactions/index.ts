@@ -7,3 +7,4 @@ export * from "./delete-transaction";
 export * from "./pay-schedule";
 export * from "./pay-installment";
 export * from "./get-monthly-summarized-by-type";
+export * from "./get-monthly-summarized-by-category";

@@ -27,7 +27,7 @@ export function ExpenseCard({ type, expense, currencyCode }: ExpenseCardArgs) {
       : Number(expense.amount) / Number(expense.installments);
 
   return (
-    <Card className="group bg-background h-full min-w-[250px]">
+    <Card className="group h-full min-w-[250px]">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 relative">
         <div className="flex items-center gap-2">
           <CardTitle className="text-sm font-medium">{expense.title}</CardTitle>

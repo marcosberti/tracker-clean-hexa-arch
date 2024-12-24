@@ -24,7 +24,6 @@ export interface AccountRepositoryI {
     id: AccountsE["id"],
     data: Partial<
       Omit<typeof AccountSchema._type, "main"> & {
-        balance?: number;
         main?: boolean;
       }
     >,

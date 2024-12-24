@@ -10,6 +10,8 @@ export async function action() {
 }
 
 export async function loader({ request }: LoaderFunctionArgs) {
+  console.log(">>>>accounts");
+
   const userId = await requireUserId(request);
   const accounts = await getAccounts(userId);
 

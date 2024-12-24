@@ -18,10 +18,18 @@ export async function updateAccount(
     return { errors };
   }
 
-  const account = await Repository.account.updateAccount(userId, id, {
-    ...data,
-    main: data.main === "on",
-  });
+  try {
+    const account = await Repository.account.updateAccount(userId, id, {
+      ...data,
+      main: data.main === "on",
+    });
 
-  return { account };
+    return { account };
+  } catch (e) {
+    return {
+      errors:
+        "The account could not be deleted, check the console for more info.",
+      code: "ACCOUNT_NOT_FOUND",
+    };
+  }
 }

@@ -25,6 +25,12 @@ export interface TransactionRepositoryI {
     from: string,
     to: string,
   ) => Promise<{ income: number; spent: number }>;
+  getTransactionSummarizedByCategory: (
+    userId: TransactionsE["userId"],
+    accountId: TransactionsE["accountId"],
+    from: string,
+    to: string,
+  ) => Promise<Record<string, number | string>>;
   createTransaction: (
     data: typeof TransactionSchema._type & {
       userId: TransactionsE["userId"];

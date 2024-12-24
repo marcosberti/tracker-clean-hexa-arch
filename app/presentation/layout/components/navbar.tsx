@@ -17,7 +17,7 @@ export default function Navbar() {
   const isSettingsActive = "/settings" === location.pathname;
 
   return (
-    <aside className="fixed inset-y-0 left-0 z-10 hidden flex-col border-r bg-background sm:flex">
+    <aside className="fixed inset-y-0 left-0 z-10 hidden flex-col border-r sm:flex">
       <nav className="flex flex-col items-center gap-4 px-2 sm:py-4 lg:px-3">
         <Link
           to="/"

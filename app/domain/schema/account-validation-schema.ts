@@ -22,4 +22,5 @@ export const AccountSchema = z.object({
     })
     .min(1, { message: "color is required" }),
   main: z.enum(["on"]).optional(),
+  balance: z.string().optional(),
 });

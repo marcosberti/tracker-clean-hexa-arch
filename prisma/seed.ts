@@ -20,37 +20,92 @@ const CURRENCIES = [
 
 const CATEGORIES = [
   {
-    name: "Household",
+    name: "Casa",
     color: "cyan",
     icon: "Building",
   },
   {
-    name: "Rent",
+    name: "Alquiler",
     color: "rose",
     icon: "Building",
   },
   {
-    name: "Income",
+    name: "Ingreso",
     color: "green",
     icon: "Banknote",
   },
   {
-    name: "Groceries",
+    name: "Compras",
     color: "green",
     icon: "ShoppingBasket",
+  },
+  {
+    name: "Delivery",
+    color: "rose",
+    icon: "Pizza",
+  },
+  {
+    name: "Deporte",
+    color: "teal",
+    icon: "Dribbble",
+  },
+  {
+    name: "Impuestos",
+    color: "lime",
+    icon: "HandCoins",
+  },
+  {
+    name: "Servicios",
+    color: "indigo",
+    icon: "Router",
+  },
+  {
+    name: "Regalos",
+    color: "violet",
+    icon: "Gift",
+  },
+  {
+    name: "Ocio",
+    color: "emerald",
+    icon: "Joystick",
+  },
+  {
+    name: "Auto",
+    color: "lightBlue",
+    icon: "Car",
+  },
+  {
+    name: "Ropa",
+    color: "purple",
+    icon: "Shirt",
+  },
+  {
+    name: "Salida",
+    color: "fuchsia",
+    icon: "Wine",
+  },
+  {
+    name: "Inversion",
+    color: "green",
+    icon: "ChartLine",
+  },
+  {
+    name: "Tarjeta",
+    color: "zinc",
+    icon: "CreditCard",
   },
 ];
 
 const ACCOUNTS = [
   {
-    name: "bank",
+    name: "BBVA",
     main: true,
     balance: 0,
     color: "lime",
     icon: "Banknote",
   },
   {
-    name: "vbank",
+    name: "Wise",
     main: false,
     balance: 0,
     color: "lime",
@@ -58,9 +113,9 @@ const ACCOUNTS = [
   },
 ];
 
-async function seed() {
-  const email = "bertilotti.marcos@gmail.com";
+const DEFAULT_MAIL = "bertilotti.marcos@gmail.com";
 
+async function seed() {
   await prisma.transactions.deleteMany();
   await prisma.scheduled.deleteMany();
   await prisma.installments.deleteMany();
@@ -70,10 +125,9 @@ async function seed() {
   await prisma.users.deleteMany();
 
   const hashedPassword = await bcrypt.hash("020993mb", 10);
-
   const user = await prisma.users.create({
     data: {
-      email,
+      email: DEFAULT_MAIL,
       password: {
         create: {
           hash: hashedPassword,

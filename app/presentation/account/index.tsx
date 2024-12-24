@@ -43,6 +43,10 @@ import {
   CardHeader,
 } from "~/presentation/components/ui/card";
 import {
+  ScrollArea,
+  ScrollBar,
+} from "~/presentation/components/ui/scroll-area";
+import {
   Tabs,
   TabsContent,
   TabsList,
@@ -186,6 +190,14 @@ export default function Account() {
   const [currentTab, setCurrentTab] = useState<
     "transactions" | "pendingPayments"
   >("transactions");
+  const search = new URLSearchParams();
+  if (month) {
+    search.append("month", month);
+  }
+
+  if (page) {
+    search.append("page", String(page));
+  }
 
   function handleValueChange(val: string) {
     setCurrentTab(val as "transactions" | "pendingPayments");
@@ -193,98 +205,102 @@ export default function Account() {
 
   const isInCurrentMonth = getIsInCurrentMonth(month);
 
+  //
   return (
-    <main className="p-4 sm:p-6">
-      <div className="flex gap-8">
-        <Await resolve={monthData}>
-          <BalanceCard account={account} />
-        </Await>
-        <Await resolve={expenses}>
-          <Expenses currencyCode={account.currency.code} />
-        </Await>
-      </div>
-      <div className="grid gap-4 mt-8 md:gap-8 lg:grid-cols-2 xl:grid-cols-3">
-        <div className="xl:col-span-2">
-          <Tabs value={currentTab} onValueChange={handleValueChange}>
-            <div className="flex items-center">
-              <TabsList>
-                <TabsTrigger value="transactions">Transactions</TabsTrigger>
-                <TabsTrigger
-                  value="pendingPayments"
-                  disabled={!isInCurrentMonth}
-                >
-                  Pending payments
-                </TabsTrigger>
-              </TabsList>
-            </div>
-            <TabsContent value="transactions">
-              <Card className="bg-background">
-                <CardHeader className="px-7">
-                  <div className="flex items-center justify-between">
-                    <CardTitle>Transactions</CardTitle>
-                    <div className="flex items-center gap-2">
-                      <Input
-                        type="month"
-                        value={month}
-                        className="dark:[color-scheme:dark]"
-                        onChange={(e) => {
-                          submit(
-                            { page: 1, month: e.currentTarget.value },
-                            { method: "get" },
-                          );
-                        }}
-                      />
-                      <Button asChild disabled={!isInCurrentMonth}>
-                        <Link
-                          to={{
-                            pathname: `create/transaction`,
-                            search: `?page=${page}&month=${month}`,
+    <ScrollArea className="h-[calc(100vh-4.5rem)] sm:h-[calc(100vh-4.5rem-1rem)]">
+      <main className="p-4 sm:p-6">
+        <div className="flex gap-8">
+          <Await resolve={monthData}>
+            <BalanceCard account={account} />
+          </Await>
+          <Await resolve={expenses}>
+            <Expenses currencyCode={account.currency.code} />
+          </Await>
+        </div>
+        <div className="flex flex-col md:grid gap-4 mt-8 md:gap-8 lg:grid-cols-2 xl:grid-cols-3">
+          <div className="xl:col-span-2">
+            <Tabs value={currentTab} onValueChange={handleValueChange}>
+              <div className="flex items-center">
+                <TabsList>
+                  <TabsTrigger value="transactions">Transactions</TabsTrigger>
+                  <TabsTrigger
+                    value="pendingPayments"
+                    disabled={!isInCurrentMonth}
+                  >
+                    Pending payments
+                  </TabsTrigger>
+                </TabsList>
+              </div>
+              <TabsContent value="transactions">
+                <Card>
+                  <CardHeader className="p-4 md:px-7">
+                    <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+                      <CardTitle>Transactions</CardTitle>
+                      <div className="flex items-center gap-2">
+                        <Input
+                          type="month"
+                          value={month}
+                          className="dark:[color-scheme:dark]"
+                          onChange={(e) => {
+                            submit(
+                              { page: 1, month: e.currentTarget.value },
+                              { method: "get" },
+                            );
                           }}
-                          className={
-                            isInCurrentMonth
-                              ? "pointer-events-auto"
-                              : "pointer-events-none opacity-50"
-                          }
-                        >
-                          <PlusCircle className="size-4" />
-                        </Link>
-                      </Button>
+                        />
+                        <Button asChild disabled={!isInCurrentMonth}>
+                          <Link
+                            to={{
+                              pathname: `create/transaction`,
+                              search: search.toString(),
+                            }}
+                            className={
+                              isInCurrentMonth
+                                ? "pointer-events-auto"
+                                : "pointer-events-none opacity-50"
+                            }
+                          >
+                            <PlusCircle className="size-4" />
+                          </Link>
+                        </Button>
+                      </div>
                     </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <Suspense fallback={null}>
-                    <Await resolve={transactions}>
-                      <Transactions
-                        month={month}
-                        page={page}
-                        currencyCode={account.currency.code}
-                      />
-                    </Await>
-                  </Suspense>
-                </CardContent>
-              </Card>
-            </TabsContent>
-            <TabsContent value="pendingPayments">
-              <Card className="bg-background">
-                <CardHeader className="px-7">
-                  <CardTitle>Pending payments</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <Suspense fallback={null}>
-                    <Await resolve={pending}>
-                      <PendingPayments currencyCode={account.currency.code} />
-                    </Await>
-                  </Suspense>
-                </CardContent>
-              </Card>
-            </TabsContent>
-          </Tabs>
+                  </CardHeader>
+                  <CardContent>
+                    <Suspense fallback={null}>
+                      <Await resolve={transactions}>
+                        <Transactions
+                          month={month}
+                          page={page}
+                          currencyCode={account.currency.code}
+                        />
+                      </Await>
+                    </Suspense>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+              <TabsContent value="pendingPayments">
+                <Card>
+                  <CardHeader className="p-4 md:px-7">
+                    <CardTitle>Pending payments</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <Suspense fallback={null}>
+                      <Await resolve={pending}>
+                        <PendingPayments currencyCode={account.currency.code} />
+                      </Await>
+                    </Suspense>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
+          </div>
+          <div>
+            <Outlet />
+          </div>
         </div>
-        <div>
-          <Outlet />
-        </div>
-      </div>
-    </main>
+      </main>
+      <ScrollBar />
+    </ScrollArea>
   );
 }

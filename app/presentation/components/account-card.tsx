@@ -12,7 +12,7 @@ import { formatAmount, formatDate } from "~/presentation/utils";
 
 export default function AccountCard({ account }: { account: AccountSelect }) {
   return (
-    <Card className="bg-background h-full min-w-[220px]">
+    <Card className="h-full min-w-[220px]">
       <Link to={`/account/${account.id}`}>
         <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
           <CardTitle className="text-sm font-medium">{account.name}</CardTitle>

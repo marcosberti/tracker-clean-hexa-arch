@@ -56,6 +56,15 @@ export function Transactions({
   const pages = new Array(totalPages).fill("").map((_, index) => index + 1);
   const monthName = getMonthName(month);
 
+  const search = new URLSearchParams();
+  if (month) {
+    search.append("month", month);
+  }
+
+  if (page) {
+    search.append("page", String(page));
+  }
+
   return transactions.length ? (
     <>
       <ScrollArea className="md:h-[calc(100vh-31rem)]">
@@ -87,7 +96,7 @@ export function Transactions({
                   <Link
                     to={{
                       pathname: `transaction/${t.id}`,
-                      search: `?page=${page}&month=${month}`,
+                      search: search.toString(),
                     }}
                     className="p-2 w-full h-full inline-block"
                   >
@@ -103,7 +112,7 @@ export function Transactions({
                   <Link
                     to={{
                       pathname: `transaction/${t.id}`,
-                      search: `?page=${page}&month=${month}`,
+                      search: search.toString(),
                     }}
                     className="p-2 w-full h-full inline-block"
                   >
@@ -114,7 +123,7 @@ export function Transactions({
                   <Link
                     to={{
                       pathname: `transaction/${t.id}`,
-                      search: `?page=${page}&month=${month}`,
+                      search: search.toString(),
                     }}
                     className="p-2 w-full h-full inline-block"
                   >
@@ -125,7 +134,7 @@ export function Transactions({
                   <Link
                     to={{
                       pathname: `transaction/${t.id}`,
-                      search: `?page=${page}&month=${month}`,
+                      search: search.toString(),
                     }}
                     className="p-2 w-full h-full inline-block"
                   >
@@ -137,7 +146,7 @@ export function Transactions({
                     <Link
                       to={{
                         pathname: `edit/transaction/${t.id}`,
-                        search: `?page=${page}&month=${month}`,
+                        search: search.toString(),
                       }}
                       type="submit"
                       className="flex items-center justify-center whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 hover:bg-accent hover:text-accent-foreground size-8 p-0"
@@ -192,7 +201,9 @@ export function Transactions({
     </>
   ) : (
     <div className="w-full md:h-[calc(100vh-27.5rem)] flex justify-center">
-      <p>No transactions in {monthName}</p>
+      <p className="w-full font-semibold text-xs text-center">
+        No transactions in {monthName}
+      </p>
     </div>
   );
 }

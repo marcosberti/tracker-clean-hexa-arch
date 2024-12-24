@@ -98,7 +98,8 @@ function AccountsActionsHeader() {
   return (
     <Button asChild>
       <Link to="/accounts/create">
-        <PlusCircle className="size-4 mr-2" /> Create account
+        <PlusCircle className="size-4 md:mr-2" />{" "}
+        <span className="hidden md:inline-block">Create account</span>
       </Link>
     </Button>
   );
@@ -108,7 +109,8 @@ function AccountDetailActionsHeader({ account }: HeaderArgs) {
   return (
     <Button asChild>
       <Link to={`/account/${account!.id}/create/expense`}>
-        <PlusCircle className="size-4 mr-2" /> Create expense
+        <PlusCircle className="size-4 md:mr-2" />{" "}
+        <span className="hidden md:inline-block">Create expense</span>
       </Link>
     </Button>
   );
@@ -148,7 +150,7 @@ export default function Header({ account }: HeaderArgs) {
   }
 
   return (
-    <header className="sticky top-0 z-30 pt-4 flex h-[4.5rem] items-center gap-4 border-b bg-background px-4 sm:static sm:border-0 sm:bg-transparent sm:px-6">
+    <header className="sticky top-0 z-30 pt-4 flex h-[4.5rem] items-center gap-4 border-b px-4 sm:static sm:border-0 sm:bg-transparent sm:px-6">
       <Sheet>
         <SheetTrigger asChild>
           <Button size="icon" variant="outline" className="sm:hidden">
@@ -156,7 +158,10 @@ export default function Header({ account }: HeaderArgs) {
             <span className="sr-only">Toggle Menu</span>
           </Button>
         </SheetTrigger>
-        <SheetContent side="left" className="sm:max-w-xs">
+        <SheetContent
+          side="left"
+          className="sm:max-w-xs flex flex-col justify-between"
+        >
           <nav className="grid gap-6 text-lg font-medium">
             <Link
               to="/"
@@ -195,6 +200,27 @@ export default function Header({ account }: HeaderArgs) {
               Settings
             </Link>
           </nav>
+          <div className="flex justify-center">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="overflow-hidden rounded-full bg-white"
+                >
+                  <UserCircle className="size-6 text-primary-foreground" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem>Settings</DropdownMenuItem>
+                <DropdownMenuItem>Support</DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem>Logout</DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </SheetContent>
       </Sheet>
 
@@ -202,25 +228,27 @@ export default function Header({ account }: HeaderArgs) {
 
       <div className="ml-auto flex items-center gap-4">
         <HeaderActionsComp account={account} />
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="outline"
-              size="icon"
-              className="overflow-hidden rounded-full bg-white"
-            >
-              <UserCircle className="size-6 text-primary-foreground" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuLabel>My Account</DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>Settings</DropdownMenuItem>
-            <DropdownMenuItem>Support</DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>Logout</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <div className="hidden md:block">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                size="icon"
+                className="overflow-hidden rounded-full bg-white"
+              >
+                <UserCircle className="size-6 text-primary-foreground" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>My Account</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem>Settings</DropdownMenuItem>
+              <DropdownMenuItem>Support</DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem>Logout</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
     </header>
   );

@@ -1,12 +1,6 @@
+"use client";
 import { useAsyncValue } from "@remix-run/react";
-import {
-  Bar,
-  BarChart,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-} from "recharts";
+import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
 
 import {
   Card,
@@ -14,6 +8,12 @@ import {
   CardHeader,
   CardTitle,
 } from "~/presentation/components/ui/card";
+import {
+  ChartConfig,
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "~/presentation/components/ui/chart";
 import { formatAmount } from "~/presentation/utils";
 
 interface MonthlyData {
@@ -22,87 +22,66 @@ interface MonthlyData {
   spent: number;
 }
 
-type Payload = Partial<{ value: number }>;
-
-interface CustomTooltipArgs {
-  active?: boolean;
-  payload?: Payload[];
-  label?: string;
-  currencyCode: string | undefined;
-}
-
-function CustomTooltip({
-  active,
-  payload,
-  label,
-  currencyCode,
-}: CustomTooltipArgs) {
-  if (active && payload && payload.length) {
-    const income = payload[0].value as number;
-    const spent = payload[1].value as number;
-
-    return (
-      <div className="bg-foreground bg-opacity-50 rounded-lg text-background p-4">
-        <p className="label font-semibold">{label}</p>
-        <p className="intro text-sm">
-          Income: {formatAmount(income, currencyCode)}
-        </p>
-        <p className="intro text-sm">
-          Spent: {formatAmount(spent, currencyCode)}
-        </p>
-      </div>
-    );
-  }
-
-  return null;
-}
-
 interface MonthlyChartArgs {
   currencyCode: string | undefined;
 }
+
+const chartConfig = {
+  income: {
+    label: "Income",
+    color: "hsl(var(--chart-1))",
+  },
+  spent: {
+    label: "Spent",
+    color: "hsl(var(--chart-2))",
+  },
+} satisfies ChartConfig;
 
 export default function MonthlyChart({ currencyCode }: MonthlyChartArgs) {
   const monthlyData = useAsyncValue() as MonthlyData[];
 
   return (
-    <Card className="bg-background xl:col-span-2">
+    <Card className="xl:col-span-2 lg:row-span-2 h-fit">
       <CardHeader className="flex flex-row items-center">
         <div className="grid gap-2">
           <CardTitle>Overview</CardTitle>
         </div>
       </CardHeader>
       <CardContent className="pl-2">
-        <ResponsiveContainer width="100%" height={350}>
+        <ChartContainer config={chartConfig}>
           <BarChart data={monthlyData}>
+            <CartesianGrid vertical={false} />
             <XAxis
               dataKey="month"
               stroke="#888888"
-              fontSize={12}
               tickLine={false}
+              tickMargin={10}
               axisLine={false}
+              tickFormatter={(value) => value.slice(0, 3)}
             />
-            <YAxis
-              stroke="#888888"
-              fontSize={12}
-              tickLine={false}
-              axisLine={false}
-              tickFormatter={(value) => `$${value}`}
+            <ChartTooltip
+              cursor={false}
+              content={
+                <ChartTooltipContent
+                  indicator="dashed"
+                  formatter={(v, n) => {
+                    return `${n}: ${formatAmount(Number(v), currencyCode)}`;
+                  }}
+                />
+              }
             />
-            <Tooltip content={<CustomTooltip currencyCode={currencyCode} />} />
             <Bar
               dataKey="income"
-              fill="currentColor"
+              fill="var(--color-income)"
               radius={[4, 4, 0, 0]}
-              className="fill-foreground"
             />
             <Bar
               dataKey="spent"
-              fill="currentColor"
+              fill="var(--color-spent)"
               radius={[4, 4, 0, 0]}
-              className="fill-muted-foreground"
             />
           </BarChart>
-        </ResponsiveContainer>
+        </ChartContainer>
       </CardContent>
     </Card>
   );

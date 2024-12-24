@@ -46,7 +46,7 @@ export default function CreateAccount() {
   const { currencies } = useLoaderData<typeof loader>();
 
   return (
-    <Card className="bg-background">
+    <Card>
       <CardHeader>
         <Button variant="link" className="mr-auto p-0 h-auto" asChild>
           <Link to="..">
