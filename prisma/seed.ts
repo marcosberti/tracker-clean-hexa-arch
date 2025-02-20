@@ -124,7 +124,7 @@ async function seed() {
   await prisma.currencies.deleteMany();
   await prisma.users.deleteMany();
 
-  const hashedPassword = await bcrypt.hash("020993mb", 10);
+  const hashedPassword = await bcrypt.hash("123456", 10);
   const user = await prisma.users.create({
     data: {
       email: DEFAULT_MAIL,
